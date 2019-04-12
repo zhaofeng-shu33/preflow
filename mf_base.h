@@ -1,12 +1,9 @@
 #include <lemon/preflow.h>
-namespace experiment{
+namespace lemon{
     template <typename GR,
               typename CAP = typename GR::template ArcMap<int>,
-              typename TR = lemon::PreflowDefaultTraits<GR, CAP> >
+              typename TR = PreflowDefaultTraits<GR, CAP> >
     class Preflow_Relabel{
-        private:
-
-            TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);        
         
         public:
             // for linked list we use std::list<Node>
@@ -15,8 +12,16 @@ namespace experiment{
             typedef typename Traits::CapacityMap CapacityMap;
             typedef typename Traits::Value Value;
             typedef typename Traits::FlowMap FlowMap;
+            typedef typename Traits::Tolerance Tolerance; 
+
+        private:  
+            TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+
+        public:
             typedef std::list<Node> Elevator;
-            typedef typename Traits::Tolerance Tolerance;        
+
+        public:     
+            Preflow_Relabel(const Digraph& digraph, const CapacityMap& capacity, Node source, Node target){}
     };
 
 }
