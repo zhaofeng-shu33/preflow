@@ -281,7 +281,7 @@ namespace lemon{
             }
             
             void pushRelabel() {
-                Elevator::iterator ele_it = _elevator->begin();
+                typename Elevator::iterator ele_it = _elevator->begin();
                 while(ele_it != _elevator->end()){
                     if (*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it)) {
                         ele_it++;
