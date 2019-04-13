@@ -74,9 +74,25 @@ namespace lemon{
         }
     };
 
+    template <typename GR, typename CAP>
+    struct Preflow_RelabelDefaultTraits {
+        typedef GR Digraph;
+        typedef CAP CapacityMap;
+        typedef typename CapacityMap::Value Value;
+        typedef typename Digraph::template ArcMap<Value> FlowMap;
+        static FlowMap* createFlowMap(const Digraph& digraph) {
+            return new FlowMap(digraph);
+        }
+        typedef RelabelElevator<Digraph, typename Digraph::Node> Elevator;
+        static Elevator* createElevator(const Digraph& digraph, int max_level) {
+            return new Elevator(digraph, max_level);
+        }
+        typedef lemon::Tolerance<Value> Tolerance;
+    };
+  
     template <typename GR,
               typename CAP = typename GR::template ArcMap<int>,
-              typename TR = typename Preflow<GR, CAP>::template SetStandardElevatorTraits<RelabelElevator<GR,typename GR::Node>>>
+              typename TR = Preflow_RelabelDefaultTraits<GR, CAP>>
     class Preflow_Relabel{
         
         public:
@@ -87,14 +103,10 @@ namespace lemon{
             typedef typename Traits::Value Value;
             typedef typename Traits::FlowMap FlowMap;
             typedef typename Traits::Tolerance Tolerance; 
-
+            typedef typename Traits::Elevator Elevator;
         private:  
             TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
             
-        public:
-            typedef std::list<Node> Elevator;
-        
-        private:
             const Digraph& _graph;
             const CapacityMap* _capacity;
             
@@ -111,12 +123,12 @@ namespace lemon{
             Tolerance _tolerance;
             
             void createStructures() {
-                _node_num = countNode(_graph);
+                _node_num = countNodes(_graph);
                 if(!_flow){
                     _flow = Traits::createFlowMap(_graph);                   
                 }
                 if(!_elevator){
-                    _elevator = new std::list<Node>;
+                    _elevator = Traits::createElevator(_graph, _node_num);
                 }
                 if(!_excess){
                     _excess = new ExcessMap(_graph);
@@ -133,9 +145,9 @@ namespace lemon{
                 if(!_elevator->active(v) && v != _target){
                     _elevator->activate(v);
                 }
-                Value rem = (*capacity)[e] - (*_flow)[e];
+                Value rem = (*_capacity)[e] - (*_flow)[e];
                 Value excess = (*_excess)[u];
-                if(_tolerace.less(rem, excess)){
+                if(_tolerance.less(rem, excess)){
                     // saturating push
                     (*_excess)[u] -= rem;
                     (*_excess)[v] += rem;
@@ -155,7 +167,7 @@ namespace lemon{
                 }
                 Value rem = (*_flow)[e];
                 Value excess = (*_excess)[u];
-                if(_tolerace.less(rem, excess)){
+                if(_tolerance.less(rem, excess)){
                     // saturating push
                     (*_excess)[u] -= rem;
                     (*_excess)[v] += rem;
@@ -169,22 +181,41 @@ namespace lemon{
                 }                
             }
             inline void relabel(const Node& n) {
+                int min_height = 2 * _node_num;
+                for(OutArcIt e(_graph, n); e != INVALID; ++e){
+                    if(_tolerance.less((*_flow)[e], (*_capacity)[e])){
+                        Node v = _graph.target(e);
+                        if((*_elevator)[v] < min_height)
+                            min_height = (*_elevator)[v];
+                    }
+                }
+                for(InArcIt e(_graph, n); e != INVALID; ++e) {
+                    if(_tolerance.positive((*_flow)[e])){
+                        Node v = _graph.source(e);
+                        if((*_elevator)[v] < min_height)
+                            min_height = (*_elevator)[v];                        
+                    }
+                }
             }
             void discharge(const Node& n) {
                 while((*_excess)[n] > 0){
                     for(OutArcIt e(_graph, n); e != INVALID; ++e){
-                        Node v = _graph.target(n);
-                        if(_tolerance.less((*_flow)[e], (*capacity)[e]) &&
-                            _elevator[n] == _elevator[v] + 1){
+                        Node v = _graph.target(e);
+                        if(_tolerance.less((*_flow)[e], (*_capacity)[e]) &&
+                            (*_elevator)[n] == (*_elevator)[v] + 1){
                             push(n, v, e);
                         }
+                        if((*_excess)[n] == 0)
+                            break;
                     }
                     for(InArcIt e(_graph, n); e != INVALID; ++e) {
                         Node v = _graph.source(e);
                         if(_tolerance.positive((*_flow)[e]) && 
-                           _elevator[n] == _elevator[v] + 1) {
+                           (*_elevator)[n] == (*_elevator)[v] + 1) {
                             push_back(n, v, e); // push back the flow
                         }
+                        if((*_excess)[n] == 0)
+                            break;                        
                     }
                     relabel(n);
                 }
@@ -226,7 +257,7 @@ namespace lemon{
                 _elevator->initFinish();
                 
                 for(OutArcIt e(_graph, _source); e != INVALID; ++e){
-                    if(_tolerace.positive((*_capacity)[e])){
+                    if(_tolerance.positive((*_capacity)[e])){
                         Node u = _graph.target(e);
                         _flow->set(e, (*_capacity)[e]);
                         (*_excess)[u] += (*_capacity)[e];
@@ -242,9 +273,9 @@ namespace lemon{
                 while(ele_it != _elevator->end()){
                     if(*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it))
                         continue;
-                    Value old_label = _elevator[*ele_it];
+                    Value old_label = (*_elevator)[*ele_it];
                     discharge(*ele_it);
-                    if(_elevator[*ele_it] > old_label){
+                    if((*_elevator)[*ele_it] > old_label){
                         _elevator->moveToFront(ele_it);
                         ele_it = _elevator->begin();
                     }
@@ -252,6 +283,15 @@ namespace lemon{
                         ele_it++;
                     }
                 }
+            }
+            
+            Value flowValue() const {
+                return (*_excess)[_target];
+            }
+            
+            void runMinCut() {
+                init();
+                pushRelabel();
             }
     };
 
