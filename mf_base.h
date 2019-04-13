@@ -303,6 +303,10 @@ namespace lemon{
                 return (*_excess)[_target];
             }
 
+            inline void startFirstPhase() {
+                pushRelabel();
+            }
+
             // the second phase calculate the minimal cut set
             // but it also dirty the Elevator(active)            
             void startSecondPhase() {
@@ -346,6 +350,11 @@ namespace lemon{
             }
 
             void runMinCut() {
+                init();
+                pushRelabel();
+            }
+
+            void run() {
                 init();
                 pushRelabel();
                 startSecondPhase();

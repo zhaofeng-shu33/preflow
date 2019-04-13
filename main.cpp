@@ -81,7 +81,7 @@ TEST(Preflow_Relabel, Run){
     aM[a7] = 3;
     aM[a8] = 5;
     Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, n0, n5);  
-    pf_relabel.runMinCut();
+    pf_relabel.run();
     Preflow<Digraph, ArcMap> pf(g, aM, n0, n5);
     pf.run();
     EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
