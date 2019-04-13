@@ -43,7 +43,12 @@ namespace lemon{
             relabel_list.erase(item_it);
             relabel_list.push_front(item);
         }
-    
+        iterator begin() {
+            return relabel_list.begin();
+        }
+        iterator end() {
+            return relabel_list.end();
+        }    
     private:
         
         int _init_level;
