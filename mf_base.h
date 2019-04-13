@@ -76,7 +76,7 @@ namespace lemon{
 
     template <typename GR,
               typename CAP = typename GR::template ArcMap<int>,
-              typename TR = PreflowDefaultTraits<GR, CAP> >
+              typename TR = typename Preflow<GR, CAP>::template SetStandardElevatorTraits<RelabelElevator<GR,typename GR::Node>>>
     class Preflow_Relabel{
         
         public:
