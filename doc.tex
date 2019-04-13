@@ -1,0 +1,17 @@
+\documentclass{article}
+\usepackage{graphicx}
+\begin{document}
+In the implementation of Preflow algrithms, we differentiate
+two types of \textbf{push}. One is normal push, that is,
+$f_{uv} < c_{uv}$ and $x_u >0$, $u$ can push some stored flow
+to $v$. The other is \textbf{push back}, that is,
+$f_{vu} >0$ and $x_u >0$ and $u$ can push some stored flow back to $v$.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=6cm]{size.eps}
+\caption{minimum cut is not unique}\label{fig:mc}
+\end{figure}
+
+In figure \ref{fig:mc}, our algrithm will produce the minimum cut whose source side is of maximal size.
+\end{document}

@@ -41,6 +41,11 @@ namespace lemon{
         void lift(Item i, int new_level) {
             _level[i] = new_level;
         }
+
+        int maxLevel() const {
+            return _max_level;
+        }
+
         // move the Item to the front of relabel_list
         void moveToFront(iterator item_it) {
             Item item = *item_it;
@@ -297,10 +302,53 @@ namespace lemon{
             Value flowValue() const {
                 return (*_excess)[_target];
             }
-            
+
+            // the second phase calculate the minimal cut set
+            // but it also dirty the Elevator(active)            
+            void startSecondPhase() {
+                typename Digraph::template NodeMap<bool> reached(_graph);
+                for (NodeIt n(_graph); n != INVALID; ++n) {
+                    reached[n] = false;
+                }
+                std::vector<Node> queue;
+                queue.push_back(_source);
+                reached[_source] = true;
+                _elevator->activate(_source);
+                // breadth-first search
+                while (!queue.empty()) {
+                    std::vector<Node> nqueue;
+                    for (int i = 0; i < int(queue.size()); i++) {
+                        Node n = queue[i];
+                        for (OutArcIt e(_graph, n); e != INVALID; ++e) {
+                            Node u = _graph.target(e);
+                            if(!reached[u] && _tolerance.less((*_flow)[e], (*_capacity)[e])){
+                                reached[u] = true;
+                                _elevator->activate(u);
+                                nqueue.push_back(u);
+                            }
+                        }
+                        for (InArcIt e(_graph, n); e != INVALID; ++e) {
+                            Node u = _graph.source(e);
+                            if (!reached[u] && _tolerance.positive((*_flow)[e])) {
+                                reached[u] = true;
+                                _elevator->activate(u);
+                                nqueue.push_back(u);
+                            }
+                        }
+                    }
+                    queue.swap(nqueue);
+                }
+            }
+
+            // source side minCut
+            bool minCut(const Node& node) const {
+                return _elevator->active(node);
+            }
+
             void runMinCut() {
                 init();
                 pushRelabel();
+                startSecondPhase();
             }
     };
 

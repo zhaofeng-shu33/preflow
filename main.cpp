@@ -65,20 +65,27 @@ TEST(Preflow_Relabel, Run){
     Node n5 = g.addNode();   
     ArcMap aM(g);
     Arc a1 = g.addArc(n0, n1);
-    Arc a2 = g.addArc(n0, n2);
-    Arc a3 = g.addArc(n1, n2);
-    Arc a4 = g.addArc(n2, n4);
-    Arc a5 = g.addArc(n3, n5);
+    Arc a2 = g.addArc(n1, n2);
+    Arc a3 = g.addArc(n0, n3);
+    Arc a4 = g.addArc(n3, n4);
+    Arc a5 = g.addArc(n2, n5);
     Arc a6 = g.addArc(n4, n5);
-    aM[a1] = 2;
-    aM[a2] = 9;
-    aM[a3] = 1;
-    aM[a4] = 7;
+    Arc a7 = g.addArc(n2, n3);
+    Arc a8 = g.addArc(n4, n1);
+    aM[a1] = 15;
+    aM[a2] = 12;
+    aM[a3] = 4;
+    aM[a4] = 10;
     aM[a5] = 7;
-    aM[a6] = 4;    
+    aM[a6] = 10;    
+    aM[a7] = 3;
+    aM[a8] = 5;
     Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, n0, n5);  
     pf_relabel.runMinCut();
     Preflow<Digraph, ArcMap> pf(g, aM, n0, n5);
-    pf.runMinCut();
+    pf.run();
     EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
+    for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+        EXPECT_EQ(pf.minCut(n), pf_relabel.minCut(n));
+    }
 }
