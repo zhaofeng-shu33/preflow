@@ -1,5 +1,5 @@
 #include <list>
-#include <lemon/preflow.h>
+#include <lemon/tolerance.h>
 namespace lemon{
     template<class GR, class Item>
     class RelabelElevator{
@@ -36,7 +36,10 @@ namespace lemon{
         bool active(Item i) const { return _active[i]; }
         
         int operator[](Item i) const { return _level[i]; }
-        
+
+        void lift(Item i, int new_level) {
+            _level[i] = new_level;
+        }
         // move the Item to the front of relabel_list
         void moveToFront(iterator item_it) {
             Item item = *item_it;
@@ -196,6 +199,7 @@ namespace lemon{
                             min_height = (*_elevator)[v];                        
                     }
                 }
+                _elevator->lift(n, min_height + 1);
             }
             void discharge(const Node& n) {
                 while((*_excess)[n] > 0){
@@ -208,6 +212,8 @@ namespace lemon{
                         if((*_excess)[n] == 0)
                             break;
                     }
+                    if ((*_excess)[n] == 0)
+                        break;
                     for(InArcIt e(_graph, n); e != INVALID; ++e) {
                         Node v = _graph.source(e);
                         if(_tolerance.positive((*_flow)[e]) && 
@@ -271,8 +277,10 @@ namespace lemon{
             void pushRelabel() {
                 Elevator::iterator ele_it = _elevator->begin();
                 while(ele_it != _elevator->end()){
-                    if(*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it))
+                    if (*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it)) {
+                        ele_it++;
                         continue;
+                    }
                     Value old_label = (*_elevator)[*ele_it];
                     discharge(*ele_it);
                     if((*_elevator)[*ele_it] > old_label){
