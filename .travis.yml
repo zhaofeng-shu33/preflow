@@ -43,4 +43,4 @@ before_install:
   - cmake ../ 
 script:
   - make
-  - test/test_mf
+  - test_mf
