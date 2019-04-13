@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <lemon/concepts/digraph.h>
 #include <lemon/list_graph.h>
+#include <lemon/preflow.h>
 #include "mf_base.h"
 using namespace lemon;
 TEST(Preflow_Relabel, Constructor) {
@@ -75,6 +76,9 @@ TEST(Preflow_Relabel, Run){
     aM[a4] = 7;
     aM[a5] = 7;
     aM[a6] = 4;    
-    Preflow_Relabel<Digraph, ArcMap> pf(g, aM, n0, n5);    
+    Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, n0, n5);  
+    pf_relabel.runMinCut();
+    Preflow<Digraph, ArcMap> pf(g, aM, n0, n5);
     pf.runMinCut();
+    EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
 }

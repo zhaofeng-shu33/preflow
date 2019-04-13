@@ -1,3 +1,4 @@
+#pragma once
 #include <list>
 #include <lemon/tolerance.h>
 namespace lemon{
