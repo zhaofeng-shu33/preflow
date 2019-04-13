@@ -128,6 +128,68 @@ namespace lemon{
                 delete _elevator;
                 delete _excess;
             }
+            // push flow from Node u to Node v
+            inline void push(const Node& u, const Node& v, const Arc& e) {
+                if(!_elevator->active(v) && v != _target){
+                    _elevator->activate(v);
+                }
+                Value rem = (*capacity)[e] - (*_flow)[e];
+                Value excess = (*_excess)[u];
+                if(_tolerace.less(rem, excess)){
+                    // saturating push
+                    (*_excess)[u] -= rem;
+                    (*_excess)[v] += rem;
+                    _flow->set(e, (*_capacity)[e]);
+                }
+                else {
+                    // no saturating push
+                    (*_excess)[u] = 0;
+                    (*_excess)[v] += excess;
+                    _flow->set(e, (*_flow)[e] + excess);
+                }
+            }
+            // push flow back from Node u to Node v
+            inline void push_back(const Node& u, const Node& v, const Arc& e) {
+                if(!_elevator->active(v) && v != _source){
+                    _elevator->activate(v);
+                }
+                Value rem = (*_flow)[e];
+                Value excess = (*_excess)[u];
+                if(_tolerace.less(rem, excess)){
+                    // saturating push
+                    (*_excess)[u] -= rem;
+                    (*_excess)[v] += rem;
+                    _flow->set(e, 0);
+                }
+                else {
+                    // no saturating push
+                    (*_excess)[u] = 0;
+                    (*_excess)[v] += excess;
+                    _flow->set(e, (*_flow)[e] - excess);
+                }                
+            }
+            inline void relabel(const Node& n) {
+            }
+            void discharge(const Node& n) {
+                while((*_excess)[n] > 0){
+                    for(OutArcIt e(_graph, n); e != INVALID; ++e){
+                        Node v = _graph.target(n);
+                        if(_tolerance.less((*_flow)[e], (*capacity)[e]) &&
+                            _elevator[n] == _elevator[v] + 1){
+                            push(n, v, e);
+                        }
+                    }
+                    for(InArcIt e(_graph, n); e != INVALID; ++e) {
+                        Node v = _graph.source(e);
+                        if(_tolerance.positive((*_flow)[e]) && 
+                           _elevator[n] == _elevator[v] + 1) {
+                            push_back(n, v, e); // push back the flow
+                        }
+                    }
+                    relabel(n);
+                }
+                _elevator->deactivate(n);
+            }
             
         public:     
             Preflow_Relabel(const Digraph& digraph, const CapacityMap& capacity, 
@@ -143,7 +205,53 @@ namespace lemon{
             
             void init() {
                 createStructures();
+
+                for (NodeIt n(_graph); n != INVALID; ++n) {
+                    (*_excess)[n] = 0;
+                }
+
+                for (ArcIt e(_graph); e != INVALID; ++e) {
+                    _flow->set(e, 0);
+                }                
                 
+                _elevator->initStart();
+                for(NodeIt n(_graph); n != INVALID; ++n){
+                    if(n != _source)
+                        _elevator->initAddItem(n);
+                }
+                for(NodeIt n(_graph); n != INVALID; ++n){
+                    _elevator->initNewLevel();
+                }
+                _elevator->initAddItem(_source);
+                _elevator->initFinish();
+                
+                for(OutArcIt e(_graph, _source); e != INVALID; ++e){
+                    if(_tolerace.positive((*_capacity)[e])){
+                        Node u = _graph.target(e);
+                        _flow->set(e, (*_capacity)[e]);
+                        (*_excess)[u] += (*_capacity)[e];
+                        if(u != _target && !_elevator->active(u)){
+                            _elevator->activate(u);
+                        }
+                    }
+                }
+            }
+            
+            void pushRelabel() {
+                Elevator::iterator ele_it = _elevator->begin();
+                while(ele_it != _elevator->end()){
+                    if(*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it))
+                        continue;
+                    Value old_label = _elevator[*ele_it];
+                    discharge(*ele_it);
+                    if(_elevator[*ele_it] > old_label){
+                        _elevator->moveToFront(ele_it);
+                        ele_it = _elevator->begin();
+                    }
+                    else{
+                        ele_it++;
+                    }
+                }
             }
     };
 
