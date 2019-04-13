@@ -1,3 +1,4 @@
+#include <list>
 #include <lemon/preflow.h>
 namespace lemon{
     template<class GR, class Item>
@@ -5,9 +6,8 @@ namespace lemon{
         //relabel to front elevator
         
     public:
-        typedef Item Key;
         typedef int Value;
-        
+        typedef typename std::list<Item>::iterator iterator; 
     private:
         typedef typename ItemSetTraits<GR, Item>::
         template Map<int>::Type IntMap;
@@ -19,6 +19,7 @@ namespace lemon{
         IntMap _level;
         BoolMap _active;
         std::list<Item> relabel_list;
+
     public:
         RelabelElevator(const GR& graph, int max_level)
         : _graph(graph), _max_level(max_level),
@@ -37,15 +38,17 @@ namespace lemon{
         int operator[](Item i) const { return _level[i]; }
         
         // move the Item to the front of relabel_list
-        void moveToFront(std::list<Item>::iterator item_it) {
+        void moveToFront(iterator item_it) {
             Item item = *item_it;
-            relabel_list.erase(item_it)
+            relabel_list.erase(item_it);
             relabel_list.push_front(item);
         }
     
     private:
         
         int _init_level;
+    
+    public:
         
         void initStart() {
             _init_level = 0;
@@ -64,7 +67,8 @@ namespace lemon{
         }
         void initFinish() {            
         }
-    }
+    };
+
     template <typename GR,
               typename CAP = typename GR::template ArcMap<int>,
               typename TR = PreflowDefaultTraits<GR, CAP> >
@@ -118,12 +122,13 @@ namespace lemon{
                 delete _flow;
                 delete _elevator;
                 delete _excess;
-            }            
+            }
+            
         public:     
             Preflow_Relabel(const Digraph& digraph, const CapacityMap& capacity, 
                             Node source, Node target)
-                : _graph(digraph), _capacity(capacity),
-                  _node_num(0), _source(source), _target(target)
+                : _graph(digraph), _capacity(&capacity),
+                  _node_num(0), _source(source), _target(target),
                   _flow(NULL), _elevator(NULL), _excess(NULL),
                   _tolerance(){}
             
