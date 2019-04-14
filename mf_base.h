@@ -101,7 +101,7 @@ namespace lemon{
   
     template <typename GR,
               typename CAP = typename GR::template ArcMap<int>,
-              typename TR = Preflow_RelabelDefaultTraits<GR, CAP>>
+              typename TR = Preflow_RelabelDefaultTraits<GR, CAP> >
     class Preflow_Relabel{
         
         public:
