@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <lemon/tolerance.h>
+#include <lemon/elevator.h>
 namespace lemon{
     template<class GR, class Item>
     class RelabelElevator{
@@ -106,7 +107,159 @@ namespace lemon{
         }
         typedef lemon::Tolerance<Value> Tolerance;
     };
-  
+    template <typename GR, typename CAP>
+    struct Preflow_HighestDefaultTraits {
+        typedef GR Digraph;
+        typedef CAP CapacityMap;
+        typedef typename CapacityMap::Value Value;
+        typedef typename Digraph::template ArcMap<Value> FlowMap;
+        static FlowMap* createFlowMap(const Digraph& digraph) {
+            return new FlowMap(digraph);
+        }
+        typedef LinkedElevator<Digraph, typename Digraph::Node> Elevator;
+        static Elevator* createElevator(const Digraph& digraph, int max_level) {
+            return new Elevator(digraph, max_level);
+        }
+        typedef lemon::Tolerance<Value> Tolerance;
+    };
+
+    template <typename GR,
+        typename CAP = typename GR::template ArcMap<int>,
+        typename TR = Preflow_RelabelDefaultTraits<GR, CAP> >
+    class Preflow_Highest {
+
+        public:
+            // for linked list we use std::list<Node>
+            typedef TR Traits;
+            typedef typename Traits::Digraph Digraph;
+            typedef typename Traits::CapacityMap CapacityMap;
+            typedef typename Traits::Value Value;
+            typedef typename Traits::FlowMap FlowMap;
+            typedef typename Traits::Tolerance Tolerance;
+            typedef typename Traits::Elevator Elevator;
+        private:
+            TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+
+            const Digraph& _graph;
+            const CapacityMap* _capacity;
+
+            int _node_num;
+
+            Node _source, _target;
+
+            FlowMap* _flow;
+            Elevator* _elevator;
+
+            typedef typename Digraph::template NodeMap<Value> ExcessMap;
+            ExcessMap* _excess;
+
+            Tolerance _tolerance;
+
+            void createStructures() {
+                _node_num = countNodes(_graph);
+                if (!_flow) {
+                    _flow = Traits::createFlowMap(_graph);
+                }
+                if (!_elevator) {
+                    _elevator = Traits::createElevator(_graph, _node_num);
+                }
+                if (!_excess) {
+                    _excess = new ExcessMap(_graph);
+                }
+            }
+
+            void destroyStructures() {
+                delete _flow;
+                delete _elevator;
+                delete _excess;
+            }
+        public:
+            ~Preflow_Highest(){
+                destroyStructures();
+            }
+
+            Preflow_Highest(const Digraph& digraph, const CapacityMap& capacity,
+                Node source, Node target)
+            : _graph(digraph), _capacity(&capacity),
+            _node_num(0), _source(source), _target(target),
+            _flow(NULL), _elevator(NULL), _excess(NULL),
+            _tolerance() {}
+
+            void init() {
+                createStructures();
+
+                for (NodeIt n(_graph); n != INVALID; ++n) {
+                    (*_excess)[n] = 0;
+                }
+
+                for (ArcIt e(_graph); e != INVALID; ++e) {
+                    _flow->set(e, 0);
+                }
+
+                typename Digraph::template NodeMap<bool> reached(_graph, false);
+
+                _elevator->initStart();
+                _elevator->initAddItem(_target);
+
+                std::vector<Node> queue;
+                reached[_source] = true;
+
+                queue.push_back(_target);
+                reached[_target] = true;
+                while (!queue.empty()) {
+                    _level->initNewLevel();
+                    std::vector<Node> nqueue;
+                    for (int i = 0; i < int(queue.size()); ++i) {
+                        Node n = queue[i];
+                        for (InArcIt e(_graph, n); e != INVALID; ++e) {
+                            Node u = _graph.source(e);
+                            if (!reached[u] && _tolerance.positive((*_capacity)[e])) {
+                                reached[u] = true;
+                                _elevator->initAddItem(u);
+                                nqueue.push_back(u);
+                            }
+                        }
+                    }
+                    queue.swap(nqueue);
+                }
+                _elevator->initFinish();
+
+                for (OutArcIt e(_graph, _source); e != INVALID; ++e) {
+                    if (_tolerance.positive((*_capacity)[e])) {
+                        Node u = _graph.target(e);
+                        if ((*_level)[u] == _elevator->maxLevel()) continue;
+                        _flow->set(e, (*_capacity)[e]);
+                        (*_excess)[u] += (*_capacity)[e];
+                        if (u != _target && !_elevator->active(u)) {
+                            _elevator->activate(u);
+                        }
+                    }
+                }
+            }
+
+            Value flowValue() const {
+                return (*_excess)[_target];
+            }
+
+            void runMinCut() {
+                init();
+                startFirstPhase();
+            }
+
+            void startFirstPhase() {
+
+            }
+
+            void startSecondPhase() {
+
+            }
+
+            void run() {
+                init();
+                startFirstPhase();
+                startSecondPhase();
+            }
+    };
     template <typename GR,
               typename CAP = typename GR::template ArcMap<int>,
               typename TR = Preflow_RelabelDefaultTraits<GR, CAP> >
@@ -197,47 +350,44 @@ namespace lemon{
                     _flow->set(e, (*_flow)[e] - excess);
                 }                
             }
-            inline void relabel(const Node& n) {
-                int min_height = 2 * _node_num;
-                for(OutArcIt e(_graph, n); e != INVALID; ++e){
-                    if(_tolerance.less((*_flow)[e], (*_capacity)[e])){
-                        Node v = _graph.target(e);
-                        if((*_elevator)[v] < min_height)
-                            min_height = (*_elevator)[v];
-                    }
-                }
-                for(InArcIt e(_graph, n); e != INVALID; ++e) {
-                    if(_tolerance.positive((*_flow)[e])){
-                        Node v = _graph.source(e);
-                        if((*_elevator)[v] < min_height)
-                            min_height = (*_elevator)[v];                        
-                    }
-                }
-                _elevator->lift(n, min_height + 1);
+            inline void relabel(const Node& n, int new_level) {
+                _elevator->lift(n, new_level + 1);
             }
             void discharge(const Node& n) {
                 while((*_excess)[n] > 0){
+                    int new_level = 2 * _elevator->maxLevel();
                     for(OutArcIt e(_graph, n); e != INVALID; ++e){
                         Node v = _graph.target(e);
-                        if(_tolerance.less((*_flow)[e], (*_capacity)[e]) &&
-                            (*_elevator)[n] == (*_elevator)[v] + 1){
-                            push(n, v, e);
+                        if (_tolerance.less((*_flow)[e], (*_capacity)[e])){
+                            if((*_elevator)[n] == (*_elevator)[v] + 1){
+                                push(n, v, e);
+                            }
+                            else if(new_level > (*_elevator)[v]){
+                                new_level = (*_elevator)[v];
+                            }
                         }
-                        if((*_excess)[n] == 0)
+                        if ((*_excess)[n] == 0)
                             break;
                     }
                     if ((*_excess)[n] == 0)
                         break;
                     for(InArcIt e(_graph, n); e != INVALID; ++e) {
                         Node v = _graph.source(e);
-                        if(_tolerance.positive((*_flow)[e]) && 
-                           (*_elevator)[n] == (*_elevator)[v] + 1) {
-                            push_back(n, v, e); // push back the flow
+
+                        if (_tolerance.positive((*_flow)[e])){
+                            if((*_elevator)[n] == (*_elevator)[v] + 1) {
+                                push_back(n, v, e); // push back the flow
+                            }
+                            else if (new_level > (*_elevator)[v]) {
+                                new_level = (*_elevator)[v];
+                            }
                         }
-                        if((*_excess)[n] == 0)
-                            break;                        
+                        if ((*_excess)[n] == 0)
+                            break;
                     }
-                    relabel(n);
+                    if ((*_excess)[n] == 0)
+                        break;
+                    relabel(n, new_level);
                 }
                 _elevator->deactivate(n);
             }
