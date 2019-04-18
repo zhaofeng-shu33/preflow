@@ -8,8 +8,17 @@ add_executable(test_mf main.cpp)
 
 target_link_libraries(test_mf ${LEMON_LIBRARY})
 
+find_package(Boost REQUIRED program_options)
 add_executable(speed_test speed_test.cpp)
+target_include_directories(speed_test PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(speed_test ${LEMON_LIBRARY})
+
+if(WIN32)
+    target_link_libraries(speed_test debug ${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG})    
+    target_link_libraries(speed_test optimized ${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE})
+else()    
+    target_link_libraries(speed_test ${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE})
+endif()
 
 if(WIN32)
     target_link_libraries(test_mf debug ${GTEST_MAIN_LIBRARY_DEBUG} debug ${GTEST_LIBRARY_DEBUG})

@@ -17,7 +17,7 @@ matrix:
     
 before_install:
   #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gsl boost-python; fi 
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libgtest-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libgtest-dev libboost-all-dev; fi
   # build and install gtest library manually  
   - pushd /usr/src/gtest
   - sudo chmod -R a+w ./

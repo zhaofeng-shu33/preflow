@@ -6,10 +6,13 @@
 #include <vector>
 #include <chrono>
 #include <iostream>
+#include <cassert>
 
+#include <boost/program_options.hpp>
 #include <lemon/list_graph.h>
 #include <lemon/preflow.h>
 #include "mf_base.h"
+
 namespace lemon{
 class ScalableGraph{
   public:
@@ -23,7 +26,7 @@ class ScalableGraph{
       _layer_num(layer_num), _layer_size(layer_size), _verbose(verbose),
       aM(_graph) {}
     void init() {
-        Node _source = _graph.addNode();
+        _source = _graph.addNode();
         std::vector<Node> node_container;
         for (int i = 0; i < _layer_size; i++) {
             Node tmp = _graph.addNode();
@@ -40,7 +43,7 @@ class ScalableGraph{
                 node_container[i] = tmp_new;
             }
         }
-        Node _target = _graph.addNode();
+        _target = _graph.addNode();
         for (int i = 0; i < _layer_size; i++) {            
             Node tmp = node_container[i];
             Arc a = _graph.addArc(tmp, _target);
@@ -68,7 +71,7 @@ class ScalableGraph{
         if (_verbose) {
             std::cout << time_used << std::endl;
         }
-        report["highest"] = time_used;
+        report["relabel"] = time_used;
 
         start_time = std::chrono::system_clock::now();
         Preflow<Digraph, ArcMap> pf(_graph, aM, _source, _target);
@@ -79,7 +82,13 @@ class ScalableGraph{
         if (_verbose) {
             std::cout << time_used << std::endl;
         }
-        report["relabel"] = time_used;
+        report["highest"] = time_used;
+
+        // check the flowvalue
+        int pf_relabel_flow_value = pf_relabel.flowValue();
+        assert(pf_relabel_flow_value == _layer_size);
+        int pf_flow_value = pf.flowValue();
+        assert(pf_flow_value == _layer_size);
     }
     
     //! get the time used to calculate the minimum cut set
@@ -99,9 +108,34 @@ class ScalableGraph{
 };
 }
 using namespace lemon;
-int main(){
-    ScalableGraph sg(4,3);
-    sg.init();
-    sg.run();
-    ScalableGraph::Report r = sg.get_report();
+void check_positive(int a) {
+    if (a <= 0) {
+        std::cout << "gamma must be positive number";
+        exit(0);
+    }
+}
+int main(int argc, const char *argv[]){
+    boost::program_options::options_description desc;
+    desc.add_options()
+        ("help,h", "Show this help screen")
+        ("layer_num", boost::program_options::value<int>()->default_value(4)->notifier(check_positive), "the number of layer")
+        ("layer_size", boost::program_options::value<int>()->default_value(3)->notifier(check_positive), "the number of nodes per layer");
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    boost::program_options::notify(vm);
+    if (vm.count("help")) {
+        std::cout << desc << '\n';
+        return 0;
+    }
+    int layer_num = vm["layer_num"].as<int>();
+    int layer_size = vm["layer_size"].as<int>();
+
+    ScalableGraph* sg = new ScalableGraph(layer_num, layer_size);
+    sg->init();
+    sg->run();
+    ScalableGraph::Report r = sg->get_report();
+    for (ScalableGraph::Report::iterator it = r.begin(); it != r.end(); it++) {
+        std::cout << it->first << ':' << it->second << '\n';
+    }
+    delete sg;
 }
