@@ -302,9 +302,13 @@ namespace lemon{
                 }
             }
             
-            void pushRelabel() {
+            void pushRelabel(bool limit_max_level) {
                 typename Elevator::iterator ele_it = _elevator->begin();
                 while(ele_it != _elevator->end()){
+                    if (limit_max_level && (*_elevator)[*ele_it] >= _elevator->maxLevel()) {
+                        ele_it++;
+                        continue;
+                    }
                     if (*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it)) {
                         ele_it++;
                         continue;
@@ -326,12 +330,13 @@ namespace lemon{
             }
 
             inline void startFirstPhase() {
-                pushRelabel();
+                pushRelabel(true);
             }
 
             // the second phase calculate the minimal cut set
             // but it also dirty the Elevator(active)            
             void startSecondPhase() {
+                pushRelabel(false);
                 typename Digraph::template NodeMap<bool> reached(_graph);
                 for (NodeIt n(_graph); n != INVALID; ++n) {
                     reached[n] = false;
@@ -373,12 +378,12 @@ namespace lemon{
 
             void runMinCut() {
                 init();
-                pushRelabel();
+                startFirstPhase();
             }
 
             void run() {
                 init();
-                pushRelabel();
+                startFirstPhase();
                 startSecondPhase();
             }
     };
