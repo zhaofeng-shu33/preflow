@@ -40,14 +40,14 @@ TEST(RelabelElevator, MoveToFront) {
     re.deactivate(a);
     EXPECT_FALSE(re.active(a));
     RelabelElevator::iterator re_it = re.begin();
-    EXPECT_EQ(g.id(*re_it), g.id(a));
-    re_it++;
     EXPECT_EQ(g.id(*re_it), g.id(b));
+    re_it++;
+    EXPECT_EQ(g.id(*re_it), g.id(a));
     re.moveToFront(re_it);
     RelabelElevator::iterator re_it_2 = re.begin();
-    EXPECT_EQ(g.id(*re_it_2), g.id(b));
+    EXPECT_EQ(g.id(*re_it_2), g.id(a));
     re_it_2++;
-    EXPECT_EQ(g.id(*re_it_2), g.id(a));    
+    EXPECT_EQ(g.id(*re_it_2), g.id(b));    
 }
 
 TEST(Preflow_Relabel, Run){

@@ -68,18 +68,26 @@ namespace lemon{
             _init_level = 0;
             for(typename ItemSetTraits<GR, Item>::ItemIt i(_graph);
                 i != INVALID; ++i) {
-                _level[i] = _max_level;
+                _level[i] = -1;
                 _active[i] = false;
             }
         }
         void initAddItem(Item i) {
             _level[i] = _init_level;
-            relabel_list.push_back(i);
+            relabel_list.push_front(i);
         }
         void initNewLevel() {
             ++_init_level;
         }
         void initFinish() {            
+            for (typename ItemSetTraits<GR, Item>::ItemIt i(_graph);
+                i != INVALID; ++i) {
+                if (_level[i] == -1) {
+                    relabel_list.push_back(i);
+                    _level[i] = _max_level;
+                }
+            }
+
         }
     };
 
@@ -256,16 +264,30 @@ namespace lemon{
                 for (ArcIt e(_graph); e != INVALID; ++e) {
                     _flow->set(e, 0);
                 }                
-                
+                // use breadth-first search to add item
+                typename Digraph::template NodeMap<bool> reached(_graph, false);
+                reached[_target] = true;
+                reached[_source] = true;
                 _elevator->initStart();
-                for(NodeIt n(_graph); n != INVALID; ++n){
-                    if(n != _source)
-                        _elevator->initAddItem(n);
-                }
-                for(NodeIt n(_graph); n != INVALID; ++n){
+                _elevator->initAddItem(_target);
+                std::vector<Node> queue;
+                queue.push_back(_target);
+                while (!queue.empty()) {
                     _elevator->initNewLevel();
+                    std::vector<Node> nqueue;
+                    for (int i = 0; i < queue.size(); i++) {
+                        Node n = queue[i];
+                        for (InArcIt e(_graph, n); e != INVALID; ++e) {
+                            Node u = _graph.source(e);
+                            if (!reached[u] && _tolerance.positive((*_capacity)[e])) {
+                                reached[u] = true;
+                                _elevator->initAddItem(u);
+                                nqueue.push_back(u);
+                            }
+                        }
+                    }
+                    queue.swap(nqueue);
                 }
-                _elevator->initAddItem(_source);
                 _elevator->initFinish();
                 
                 for(OutArcIt e(_graph, _source); e != INVALID; ++e){

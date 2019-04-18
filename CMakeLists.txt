@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-
+set (CMAKE_CXX_STANDARD 11)
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIR})
 
