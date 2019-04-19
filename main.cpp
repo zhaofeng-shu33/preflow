@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <lemon/concepts/digraph.h>
+#include <lemon/lgf_reader.h>
 #include <lemon/list_graph.h>
 #include <lemon/preflow.h>
 #include "mf_base.h"
@@ -82,6 +83,31 @@ TEST(Preflow_Relabel, Run){
     aM[a8] = 5;
     Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, n0, n5);  
     Preflow<Digraph, ArcMap> pf(g, aM, n0, n5);
+    pf.run();
+    pf_relabel.init();
+    pf_relabel.startFirstPhase();
+    EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
+    pf_relabel.startSecondPhase();
+    for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+        EXPECT_EQ(pf.minCut(n), pf_relabel.minCut(n));
+    }
+}
+TEST(Preflow_Relabel, Official) {
+    typedef ListDigraph Digraph;
+    typedef int T;
+    typedef Digraph::ArcMap<T> ArcMap;
+    typedef ListDigraph::Node Node;
+    // use official directed graph to test
+    Digraph g;
+    ArcMap cap(g);
+    Node s, t;
+    digraphReader(g, "test.lgf")
+        .arcMap("capacity", cap)
+        .node("source", s)
+        .node("target", t)
+        .run();
+    Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, cap, s, t);
+    Preflow<Digraph, ArcMap> pf(g, cap, s, t);
     pf.run();
     pf_relabel.init();
     pf_relabel.startFirstPhase();

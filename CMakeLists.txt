@@ -26,3 +26,5 @@ if(WIN32)
 elseif(UNIX)
     target_link_libraries(test_mf ${GTEST_MAIN_LIBRARY} ${GTEST_LIBRARY} pthread)
 endif()  
+# copy the graph data file to build directory
+configure_file(${PROJECT_SOURCE_DIR}/test.lgf ${PROJECT_BINARY_DIR}/test.lgf COPYONLY)

@@ -254,11 +254,27 @@ namespace lemon{
                 destroyStructures();
             }
             // after capacity change, reinit the class, used by parametric maximal flow
+            // only second phase is needed to run
             void reinit() {
-                // update _flow connected with sink_node
+                // update _flow, _excess connected with sink_node
                 for (InArcIt e(_graph, _target); e != INVALID; ++e) {
-                    if (flowMap[e] > (*_capacity)[e]) {
+                    if ((*_flow)[e] > (*_capacity)[e]) {
+                        Node v = _graph.source(e);
+                        (*_excess)[v] += ((*_flow)[e] - (*_capacity)[e]);
                         _flow->set(e, (*_capacity)[e]);
+                        _elevator->activate(v);
+                    }
+                }
+                // update _flow, _excess connected with source_node
+                for (OutArcIt e(_graph, _source); e != INVALID; ++e) {
+                    if ((*_capacity)[e] > (*_flow)[e]) {
+                        Node u = _graph.target(e);
+                        // can we do not distinguish _level->maxLevel() ?
+                        if (u != _target && (*_elevator)[u] <= _elevator->maxLevel() + 1) {
+                            (*_excess)[u] += ((*_capacity)[e] - (*_flow)[e]);
+                            _flow->set(e, (*_capacity)[e]);
+                            _elevator->activate(v);
+                        }
                     }
                 }
             }
