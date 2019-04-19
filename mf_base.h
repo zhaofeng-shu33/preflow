@@ -140,6 +140,8 @@ namespace lemon{
             
             Tolerance _tolerance;
             
+            BoolNodeMap _source_side;
+
             void createStructures() {
                 _node_num = countNodes(_graph);
                 if(!_flow){
@@ -246,12 +248,20 @@ namespace lemon{
                 : _graph(digraph), _capacity(&capacity),
                   _node_num(0), _source(source), _target(target),
                   _flow(NULL), _elevator(NULL), _excess(NULL),
-                  _tolerance(){}
+                  _tolerance(), _source_side(digraph){}
             
             ~Preflow_Relabel(){
                 destroyStructures();
             }
-            
+            // after capacity change, reinit the class, used by parametric maximal flow
+            void reinit() {
+                // update _flow connected with sink_node
+                for (InArcIt e(_graph, _target); e != INVALID; ++e) {
+                    if (flowMap[e] > (*_capacity)[e]) {
+                        _flow->set(e, (*_capacity)[e]);
+                    }
+                }
+            }
             void init() {
                 createStructures();
 
@@ -332,17 +342,14 @@ namespace lemon{
             }
 
             // the second phase calculate the minimal cut set
-            // but it also dirty the Elevator(active)            
             void startSecondPhase() {
                 pushRelabel(false);
-                typename Digraph::template NodeMap<bool> reached(_graph);
                 for (NodeIt n(_graph); n != INVALID; ++n) {
-                    reached[n] = false;
+                    _source_side[n] = false;
                 }
                 std::vector<Node> queue;
                 queue.push_back(_source);
-                reached[_source] = true;
-                _elevator->activate(_source);
+                _source_side[_source] = true;
                 // breadth-first search
                 while (!queue.empty()) {
                     std::vector<Node> nqueue;
@@ -350,17 +357,15 @@ namespace lemon{
                         Node n = queue[i];
                         for (OutArcIt e(_graph, n); e != INVALID; ++e) {
                             Node u = _graph.target(e);
-                            if(!reached[u] && _tolerance.less((*_flow)[e], (*_capacity)[e])){
-                                reached[u] = true;
-                                _elevator->activate(u);
+                            if(!_source_side[u] && _tolerance.less((*_flow)[e], (*_capacity)[e])){
+                                _source_side[u] = true;
                                 nqueue.push_back(u);
                             }
                         }
                         for (InArcIt e(_graph, n); e != INVALID; ++e) {
                             Node u = _graph.source(e);
-                            if (!reached[u] && _tolerance.positive((*_flow)[e])) {
-                                reached[u] = true;
-                                _elevator->activate(u);
+                            if (!_source_side[u] && _tolerance.positive((*_flow)[e])) {
+                                _source_side[u] = true;
                                 nqueue.push_back(u);
                             }
                         }
@@ -371,7 +376,7 @@ namespace lemon{
 
             // source side minCut
             bool minCut(const Node& node) const {
-                return _elevator->active(node);
+                return _source_side[node];
             }
 
             void runMinCut() {
