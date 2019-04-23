@@ -273,7 +273,7 @@ namespace lemon{
                         if (u != _target && (*_elevator)[u] <= _elevator->maxLevel() + 1) {
                             (*_excess)[u] += ((*_capacity)[e] - (*_flow)[e]);
                             _flow->set(e, (*_capacity)[e]);
-                            _elevator->activate(v);
+                            _elevator->activate(u);
                         }
                     }
                 }
