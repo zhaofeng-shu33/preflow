@@ -7,6 +7,7 @@
 #include <chrono>
 #include <iostream>
 #include <cassert>
+#include <exception>
 
 #include <boost/program_options.hpp>
 #include <lemon/list_graph.h>
@@ -22,16 +23,19 @@ class ScalableGraph{
     typedef ListDigraph::Node Node;
     typedef ListDigraph::Arc Arc;
     typedef std::map<std::string, float> Report;
+    typedef Digraph::OutArcIt OutArcIt;
+    typedef Digraph::InArcIt InArcIt;
     ScalableGraph(int layer_num, int layer_size, bool verbose = false):
       _layer_num(layer_num), _layer_size(layer_size), _verbose(verbose),
       aM(_graph) {}
-    void init() {
+    void init(bool isReverted = false) {
+        _init_revert = isReverted;
         _source = _graph.addNode();
         std::vector<Node> node_container;
         for (int i = 0; i < _layer_size; i++) {
             Node tmp = _graph.addNode();
             Arc a = _graph.addArc(_source, tmp);
-            aM[a] = _layer_num + 1;
+            aM[a] = isReverted ? 1 : _layer_num + 1;
             node_container.push_back(tmp);
         }
         for(int j = 0; j < _layer_num - 1; j++) {
@@ -39,7 +43,7 @@ class ScalableGraph{
                 Node tmp_new = _graph.addNode();
                 Node tmp = node_container[i];
                 Arc a = _graph.addArc(tmp, tmp_new);
-                aM[a] = _layer_num - j;
+                aM[a] = isReverted ? j + 2 : _layer_num - j;
                 node_container[i] = tmp_new;
             }
         }
@@ -47,14 +51,57 @@ class ScalableGraph{
         for (int i = 0; i < _layer_size; i++) {            
             Node tmp = node_container[i];
             Arc a = _graph.addArc(tmp, _target);
-            aM[a] = 1;
+            aM[a] = isReverted ? _layer_num + 1 : 1;
         }
         if (_verbose) {
             std::cout << "G(V=" << countNodes(_graph) << ',' << 
                 "E=" << countArcs(_graph) << ')' << std::endl;            
         }
     }
-    
+    //! at each step increase arc capacity connected with source_node by 1 and 
+    //! decrease arc capacity connected target_node capacity by 1
+    //! then run the second-phase maximal flow
+    void run_parametric(){
+        if(!_init_revert){
+            throw std::logic_error("cannot run this function because of _init_revert is false.");
+        }
+        report.clear();
+        std::chrono::system_clock::time_point start_time;
+        std::chrono::system_clock::time_point end_time;
+        std::chrono::system_clock::duration dtn;
+        float time_used;
+        start_time = std::chrono::system_clock::now();
+
+        Preflow_Relabel<Digraph, ArcMap> pf_relabel(_graph, aM, _source, _target);
+        pf_relabel.run();   
+
+        end_time = std::chrono::system_clock::now();
+        dtn = end_time - start_time;
+        time_used = std::chrono::duration_cast<std::chrono::milliseconds>(dtn).count()/1000.0;
+        report["initial"] = time_used;
+        assert(pf_relabel.flowValue() == _layer_size);
+
+        // calculate the average time used.
+        float average_time = 0;
+        for(int i = 0; i <= _layer_num; i++){
+            for(OutArcIt arc(_graph, _source); arc != INVALID; ++arc){
+                aM[arc] ++;
+            }
+            for(InArcIt arc(_graph, _target); arc != INVALID; ++arc){
+                aM[arc] --;
+            }
+            start_time = std::chrono::system_clock::now();
+            pf_relabel.reinit();
+            pf_relabel.startSecondPhase();
+            end_time = std::chrono::system_clock::now();
+            dtn = end_time - start_time;
+            time_used = std::chrono::duration_cast<std::chrono::milliseconds>(dtn).count()/1000.0;
+            average_time += time_used;
+            assert(pf_relabel.flowValue() == _layer_size);
+        }
+        average_time /= (_layer_num + 1);
+        report["afterwards"] = average_time;
+    }
     //! run the algorithm with timer support
     void run(){
         std::chrono::system_clock::time_point start_time;
@@ -100,6 +147,7 @@ class ScalableGraph{
     int _layer_num;
     int _layer_size;
     bool _verbose;
+    bool _init_revert;
     Digraph _graph;
     ArcMap aM;
     Node _source;
