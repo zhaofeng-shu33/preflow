@@ -9,9 +9,17 @@ $f_{vu} >0$ and $x_u >0$ and $u$ can push some stored flow back to $v$.
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=6cm]{size.eps}
+\includegraphics[width=6cm]{fig/size.eps}
 \caption{minimum cut is not unique}\label{fig:mc}
 \end{figure}
 
-In figure \ref{fig:mc}, our algrithm will produce the minimum cut whose source side is of maximal size.
+In figure \ref{fig:mc}, our algrithm (Preflow_Relabel) will produce the minimum cut whose source side is of maximal size.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=6cm]{fig/test.eps}
+\caption{minimum cut is not unique}\label{fig:ex}
+\end{figure}
+
+Figure \ref{fig:ex} is the official example of lemon library when testing Preflow algorithm, notice that Node 0 and Node 7 will never be reached. Therefore, their belonging in min-cut seems arbitrary. 
 \end{document}
