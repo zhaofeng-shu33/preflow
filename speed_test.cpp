@@ -167,7 +167,8 @@ int main(int argc, const char *argv[]){
     desc.add_options()
         ("help,h", "Show this help screen")
         ("layer_num", boost::program_options::value<int>()->default_value(4)->notifier(check_positive), "the number of layer")
-        ("layer_size", boost::program_options::value<int>()->default_value(3)->notifier(check_positive), "the number of nodes per layer");
+        ("layer_size", boost::program_options::value<int>()->default_value(3)->notifier(check_positive), "the number of nodes per layer")
+        ("parametric", boost::program_options::value<bool>()->implicit_value(true), "whether to run parametric speed test");
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
     boost::program_options::notify(vm);
@@ -177,10 +178,14 @@ int main(int argc, const char *argv[]){
     }
     int layer_num = vm["layer_num"].as<int>();
     int layer_size = vm["layer_size"].as<int>();
-
+    bool parametric = vm["parametric"].as<bool>();
     ScalableGraph* sg = new ScalableGraph(layer_num, layer_size);
-    sg->init();
-    sg->run();
+    sg->init(parametric);
+    if(parametric)
+        sg->run_parametric();
+    else
+        sg->run();
+        
     ScalableGraph::Report r = sg->get_report();
     for (ScalableGraph::Report::iterator it = r.begin(); it != r.end(); it++) {
         std::cout << it->first << ':' << it->second << '\n';
