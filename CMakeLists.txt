@@ -4,9 +4,7 @@ set (CMAKE_CXX_STANDARD 11)
 option(ENABLE_TESTING "Enable testing" OFF)
 
 find_package(lemon REQUIRED)
-add_executable(test_mf main.cpp)
 
-target_link_libraries(test_mf ${LEMON_LIBRARY})
 
 find_package(Boost REQUIRED program_options)
 add_executable(speed_test speed_test.cpp)
@@ -20,6 +18,8 @@ else()
     target_link_libraries(speed_test ${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE})
 endif()
 if(ENABLE_TESTING)
+    add_executable(test_mf main.cpp)
+    target_link_libraries(test_mf ${LEMON_LIBRARY})
     find_package(GTest REQUIRED)
     include_directories(${GTEST_INCLUDE_DIR})
     if(WIN32)
