@@ -81,13 +81,21 @@ namespace lemon{
             ++_init_level;
         }
         void initFinish() {            
+            int new_max_level = 0;
+            bool has_max_level = false;
             for (typename ItemSetTraits<GR, Item>::ItemIt i(_graph);
                 i != INVALID; ++i) {
                 if (_level[i] == -1) {
                     relabel_list.push_back(i);
                     _level[i] = _max_level;
+                    has_max_level = true;
+                }
+                else if(new_max_level < _level[i]){
+                    new_max_level = _level[i];
                 }
             }
+            if (!has_max_level)
+                _max_level = new_max_level;
 
         }
     };
@@ -270,7 +278,7 @@ namespace lemon{
                     if ((*_capacity)[e] > (*_flow)[e]) {
                         Node u = _graph.target(e);
                         // can we do not distinguish _level->maxLevel() ?
-                        if (u != _target && (*_elevator)[u] <= _elevator->maxLevel() + 1) {
+                        if (u != _target && (*_elevator)[u] <= 1 + _elevator->maxLevel()) {
                             (*_excess)[u] += ((*_capacity)[e] - (*_flow)[e]);
                             _flow->set(e, (*_capacity)[e]);
                             _elevator->activate(u);
@@ -291,7 +299,6 @@ namespace lemon{
                 // use breadth-first search to add item
                 typename Digraph::template NodeMap<bool> reached(_graph, false);
                 reached[_target] = true;
-                reached[_source] = true;
                 _elevator->initStart();
                 _elevator->initAddItem(_target);
                 std::vector<Node> queue;

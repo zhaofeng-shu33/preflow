@@ -43,7 +43,7 @@ class ScalableGraph{
                 Node tmp_new = _graph.addNode();
                 Node tmp = node_container[i];
                 Arc a = _graph.addArc(tmp, tmp_new);
-                aM[a] = isReverted ? j + 2 : _layer_num - j;
+                aM[a] = isReverted ? j + 2 + _layer_num : _layer_num - j;
                 node_container[i] = tmp_new;
             }
         }
@@ -51,7 +51,7 @@ class ScalableGraph{
         for (int i = 0; i < _layer_size; i++) {            
             Node tmp = node_container[i];
             Arc a = _graph.addArc(tmp, _target);
-            aM[a] = isReverted ? _layer_num + 1 : 1;
+            aM[a] = isReverted ? 2 * _layer_num + 1 : 1;
         }
         if (_verbose) {
             std::cout << "G(V=" << countNodes(_graph) << ',' << 
@@ -83,7 +83,7 @@ class ScalableGraph{
 
         // calculate the average time used.
         float average_time = 0;
-        for(int i = 0; i <= _layer_num; i++){
+        for(int i = 0; i < _layer_num; i++){
             for(OutArcIt arc(_graph, _source); arc != INVALID; ++arc){
                 aM[arc] ++;
             }
@@ -97,9 +97,9 @@ class ScalableGraph{
             dtn = end_time - start_time;
             time_used = std::chrono::duration_cast<std::chrono::milliseconds>(dtn).count()/1000.0;
             average_time += time_used;
-            assert(pf_relabel.flowValue() == _layer_size);
+            assert(pf_relabel.flowValue() == _layer_size * ( 2 + i ));
         }
-        average_time /= (_layer_num + 1);
+        average_time /= _layer_num ;
         report["afterwards"] = average_time;
     }
     //! run the algorithm with timer support
@@ -168,7 +168,7 @@ int main(int argc, const char *argv[]){
         ("help,h", "Show this help screen")
         ("layer_num", boost::program_options::value<int>()->default_value(4)->notifier(check_positive), "the number of layer")
         ("layer_size", boost::program_options::value<int>()->default_value(3)->notifier(check_positive), "the number of nodes per layer")
-        ("parametric", boost::program_options::value<bool>()->implicit_value(true), "whether to run parametric speed test");
+        ("parametric", boost::program_options::value<bool>()->implicit_value(true)->default_value(false), "whether to run parametric speed test");
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
     boost::program_options::notify(vm);

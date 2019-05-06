@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{graphicx}
+\usepackage{algorithmic}
 \begin{document}
 In the implementation of Preflow algrithms, we differentiate
 two types of \textbf{push}. One is normal push, that is,
@@ -13,7 +14,7 @@ $f_{vu} >0$ and $x_u >0$ and $u$ can push some stored flow back to $v$.
 \caption{minimum cut is not unique}\label{fig:mc}
 \end{figure}
 
-In figure \ref{fig:mc}, our algrithm (Preflow_Relabel) will produce the minimum cut whose source side is of maximal size.
+In figure \ref{fig:mc}, our algrithm (Preflow\_Relabel) will produce the minimum cut whose source side is of maximal size.
 
 \begin{figure}[!ht]
 \centering
@@ -22,4 +23,22 @@ In figure \ref{fig:mc}, our algrithm (Preflow_Relabel) will produce the minimum 
 \end{figure}
 
 Figure \ref{fig:ex} is the official example of lemon library when testing Preflow algorithm, notice that Node 0 and Node 7 will never be reached. Therefore, their belonging in min-cut seems arbitrary. 
+
+In the Relabel algorithm, we assume $d(S) $ is the maximal label in the graph, when $c(s,v)$ increases, we need to reinit the preflow algorithm. Only node with $d(v) <= d(S) + 1$ can be pushed to make node $v$ active. This is the valid labeling constraint. For the target node, there is no constraint. We summarize the reinit function as follows(We assume the capacity is modified limited at edge set $\{(v,t)\in E\}\cup \{(s,u)\in E\}$)
+\begin{algorithmic}[1]
+\REQUIRE graph $G(V,E)$, valid label $d(v)$, excess function $e(v)$ and modified capacity map $c(u,v)$ and flow function $f(u,v)$.
+\ENSURE a valid preflow $f'(u,v)$ and excess function $e'(v)$.
+\FOR{node $v$ such that $(v,t)\in E$}
+\IF{$f(v,t)>c(v,t)$}
+\STATE $e(v) = f(v,t)-c(v,t)$
+\STATE $f(v,t)=c(v,t)$
+\ENDIF
+\ENDFOR
+\FOR{node $u$ such that $(s,u)\in E$}
+\IF{$f(s,u)<c(s,u)$ and $u \neq t$ and $d(u)\leq 1+d(s)$}
+\STATE $e(v) = c(s,u)-f(s,u)$
+\STATE $f(s,u)=c(s,u)$
+\ENDIF
+\ENDFOR
+\end{algorithmic}
 \end{document}
