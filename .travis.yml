@@ -45,3 +45,4 @@ before_install:
 script:
   - make
   - ./test_mf
+  - ./test_mf --parametric
