@@ -1,0 +1,17 @@
+digraph G {
+    s -> 1 [label="5"];    
+    s -> 2 [label="5"];
+    s -> 3 [label="5"];
+    1 -> 4 [label="4"];
+    2 -> 5 [label="4"];
+    3 -> 6 [label="4"];
+    4 -> 7 [label="3"];
+    5 -> 8 [label="3"];
+    6 -> 9 [label="3"];
+    7 -> 10 [label="2"];
+    8 -> 11 [label="2"];
+    9 -> 12 [label="2"];
+    10 -> t [label="1"];
+    11 -> t [label="1"];
+    12 -> t [label="1"];    
+}

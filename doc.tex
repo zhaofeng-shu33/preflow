@@ -1,7 +1,10 @@
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage{algorithmic}
+\title{relabel algorithm and its support for parametric computing}
+\author{zhaofeng-shu33}
 \begin{document}
+\maketitle
 In the implementation of Preflow algrithms, we differentiate
 two types of \textbf{push}. One is normal push, that is,
 $f_{uv} < c_{uv}$ and $x_u >0$, $u$ can push some stored flow
@@ -41,4 +44,20 @@ In the Relabel algorithm, we assume $d(S) $ is the maximal label in the graph, w
 \ENDIF
 \ENDFOR
 \end{algorithmic}
+We use \texttt{speed\_test.cpp} to test the speed of our algorithm. The graph is controled by two parameters,
+\texttt{layer\_size} and \texttt{layer\_num}.
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=6cm]{fig/normal.eps}
+\caption{scalable graph with \texttt{layer\_size} = 3, \texttt{layer\_num} = 4}\label{fig:normal}
+\end{figure}
+Fig \ref{fig:normal} shows a normal run by invoking the program \texttt{speed\_test}. The parameters can be changed by specifying \texttt{--layer\_size 10}, \texttt{--layer\_num 4} etc.
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=6cm]{fig/reverted.eps}
+\caption{scalable reverted graph with \texttt{layer\_size} = 3, \texttt{layer\_num} = 4}\label{fig:reverted}
+\end{figure}
+Fig \ref{fig:reverted} shows a parametric run by invoking the program \texttt{speed\_test} with \texttt{--parametric}.
+
+
 \end{document}

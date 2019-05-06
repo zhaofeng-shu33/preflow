@@ -25,9 +25,11 @@ class ScalableGraph{
     typedef std::map<std::string, float> Report;
     typedef Digraph::OutArcIt OutArcIt;
     typedef Digraph::InArcIt InArcIt;
+
     ScalableGraph(int layer_num, int layer_size, bool verbose = false):
       _layer_num(layer_num), _layer_size(layer_size), _verbose(verbose),
       aM(_graph) {}
+
     void init(bool isReverted = false) {
         _init_revert = isReverted;
         _source = _graph.addNode();
@@ -58,9 +60,10 @@ class ScalableGraph{
                 "E=" << countArcs(_graph) << ')' << std::endl;            
         }
     }
+
     //! at each step increase arc capacity connected with source_node by 1 and 
     //! decrease arc capacity connected target_node capacity by 1
-    //! then run the second-phase maximal flow
+    //! then only run the second-phase maximal flow
     void run_parametric(){
         if(!_init_revert){
             throw std::logic_error("cannot run this function because of _init_revert is false.");
@@ -102,6 +105,7 @@ class ScalableGraph{
         average_time /= _layer_num ;
         report["afterwards"] = average_time;
     }
+
     //! run the algorithm with timer support
     void run(){
         std::chrono::system_clock::time_point start_time;
@@ -155,13 +159,16 @@ class ScalableGraph{
     Report report;
 };
 }
+
 using namespace lemon;
+
 void check_positive(int a) {
     if (a <= 0) {
         std::cout << "gamma must be positive number";
         exit(0);
     }
 }
+
 int main(int argc, const char *argv[]){
     boost::program_options::options_description desc;
     desc.add_options()
