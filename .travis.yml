@@ -34,7 +34,7 @@ before_install:
   - echo "SET_TARGET_PROPERTIES(lemon PROPERTIES COMPILE_FLAGS \"-fPIC\")" >> lemon/CMakeLists.txt
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake -DENABLE_TESTING=ON ..
   - make
   - sudo make install
   - pushd /usr/local/share/lemon/cmake
@@ -45,4 +45,5 @@ before_install:
 script:
   - make
   - ./test_mf
-  - ./test_mf --parametric
+  - ./speed_test --parametric
+  - ./speed_test
