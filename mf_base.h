@@ -81,21 +81,13 @@ namespace lemon{
             ++_init_level;
         }
         void initFinish() {            
-            int new_max_level = 0;
-            bool has_max_level = false;
             for (typename ItemSetTraits<GR, Item>::ItemIt i(_graph);
                 i != INVALID; ++i) {
                 if (_level[i] == -1) {
                     relabel_list.push_back(i);
                     _level[i] = _max_level;
-                    has_max_level = true;
-                }
-                else if(new_max_level < _level[i]){
-                    new_max_level = _level[i];
                 }
             }
-            if (!has_max_level)
-                _max_level = new_max_level;
 
         }
     };
