@@ -41,8 +41,9 @@ before_install:
   - sudo mv LEMONConfig.cmake lemonConfig.cmake
   - popd
   - cd ../..  
-  - cmake ../ 
+  - cmake -DENABLE_TESTING=ON ../ 
 script:
   - make
   - ./test_mf
-  - ./test_mf --parametric
+  - ./speed_test --parametric
+  - ./speed_test
