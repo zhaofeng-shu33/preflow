@@ -291,6 +291,7 @@ namespace lemon{
                 // use breadth-first search to add item
                 typename Digraph::template NodeMap<bool> reached(_graph, false);
                 reached[_target] = true;
+				reached[_source] = true;
                 _elevator->initStart();
                 _elevator->initAddItem(_target);
                 std::vector<Node> queue;
