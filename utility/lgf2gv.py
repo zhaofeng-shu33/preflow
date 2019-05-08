@@ -5,8 +5,7 @@ currently only digraph convertion is supported.
 import argparse
 import networkx as nx
 import pdb
-
-def convert(filename):
+def toNetworkX(filename):
     dot = nx.DiGraph()
     with open(filename) as f:
         st = f.readline()
@@ -37,6 +36,10 @@ def convert(filename):
         if(st.find('target')>=0):
             _,t_id = st.strip().split(' ')
             dot.nodes[t_id]['label'] = 't'
+    return dot
+    
+def convert(filename):
+    dot = toNetworkX(filename)
     nx.drawing.nx_pydot.write_dot(dot, filename.replace('lgf','gv'))
     
 if __name__ == '__main__':
