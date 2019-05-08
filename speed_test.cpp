@@ -28,7 +28,7 @@ class ScalableGraph{
 
     ScalableGraph(int layer_num, int layer_size, bool verbose = false):
       _layer_num(layer_num), _layer_size(layer_size), _verbose(verbose),
-      aM(_graph) {}
+      aM(_graph), _init_revert(false){}
 
     void init(bool isReverted = false) {
         _init_revert = isReverted;
