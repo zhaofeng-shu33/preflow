@@ -41,9 +41,11 @@ before_install:
   - sudo mv LEMONConfig.cmake lemonConfig.cmake
   - popd
   - cd ../..  
+  - cp ../test.lgf ./
   - cmake -DENABLE_TESTING=ON ../ 
 script:
   - make
+  - ./lgf_compute --filename test.lgf
   - ./test_mf
   - ./speed_test --parametric
   - ./speed_test
