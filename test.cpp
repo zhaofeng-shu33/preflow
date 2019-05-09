@@ -118,3 +118,35 @@ TEST(Preflow_Relabel, Official) {
             EXPECT_EQ(pf.minCut(n), pf_relabel.minCut(n));
     }
 }
+TEST(Preflow_Relabel, Tolerance) {
+	// any edge with capacity < Tolerance<double>::def_epsilon is treated as zero.
+	typedef ListDigraph Digraph;
+	typedef double T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	typedef ListDigraph::Arc Arc;
+	Digraph g;
+	Node s = g.addNode();
+	Node n1 = g.addNode();
+	Node n2 = g.addNode();
+	Node t = g.addNode();
+	ArcMap aM(g);
+	Arc a1 = g.addArc(s, n1);
+	Arc a2 = g.addArc(n1, t);
+	Arc a3 = g.addArc(s, n2);
+	Arc a4 = g.addArc(n2, t);
+	aM[a1] = 1e-11;
+	aM[a2] = 1.0;
+	aM[a3] = 1.0;
+	aM[a4] = 1.0;
+	Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, s, t);
+	Preflow<Digraph, ArcMap> pf(g, aM, s, t);
+	pf.run();
+	pf_relabel.init();
+	pf_relabel.startFirstPhase();
+	EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
+	pf_relabel.startSecondPhase();
+	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+		EXPECT_EQ(pf.minCut(n), pf_relabel.minCut(n));
+	}
+}
