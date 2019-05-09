@@ -25,7 +25,7 @@ namespace lemon{
     public:
         RelabelElevator(const GR& graph, int max_level)
         : _graph(graph), _max_level(max_level),
-          _level(graph), _active(graph) {}
+          _level(graph), _active(graph), _init_level(0){}
           
         void activate(Item i) {
             _active[i] = true;
@@ -167,7 +167,7 @@ namespace lemon{
                 }
                 Value rem = (*_capacity)[e] - (*_flow)[e];
                 Value excess = (*_excess)[u];
-                if(_tolerance.less(rem, excess)){
+                if(_tolerance.positive(excess - rem)){
                     // saturating push
                     (*_excess)[u] -= rem;
                     (*_excess)[v] += rem;
@@ -187,7 +187,7 @@ namespace lemon{
                 }
                 Value rem = (*_flow)[e];
                 Value excess = (*_excess)[u];
-                if(_tolerance.less(rem, excess)){
+                if(_tolerance.positive(excess - rem)){
                     // saturating push
                     (*_excess)[u] -= rem;
                     (*_excess)[v] += rem;
@@ -208,7 +208,7 @@ namespace lemon{
                     int new_level = 2 * _elevator->maxLevel();
                     for(OutArcIt e(_graph, n); e != INVALID; ++e){
                         Node v = _graph.target(e);
-                        if (_tolerance.less((*_flow)[e], (*_capacity)[e])){
+                        if (_tolerance.positive((*_capacity)[e] - (*_flow)[e])){
                             if((*_elevator)[n] == (*_elevator)[v] + 1){
                                 push(n, v, e);
                             }
@@ -373,7 +373,7 @@ namespace lemon{
                         Node n = queue[i];
                         for (OutArcIt e(_graph, n); e != INVALID; ++e) {
                             Node u = _graph.target(e);
-                            if(!_source_side[u] && _tolerance.less((*_flow)[e], (*_capacity)[e])){
+                            if(!_source_side[u] && _tolerance.positive((*_capacity)[e]) - (*_flow)[e]){
                                 _source_side[u] = true;
                                 nqueue.push_back(u);
                             }
