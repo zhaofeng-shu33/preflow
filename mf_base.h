@@ -373,7 +373,7 @@ namespace lemon{
                         Node n = queue[i];
                         for (OutArcIt e(_graph, n); e != INVALID; ++e) {
                             Node u = _graph.target(e);
-                            if(!_source_side[u] && _tolerance.positive((*_capacity)[e]) - (*_flow)[e]){
+                            if(!_source_side[u] && _tolerance.positive((*_capacity)[e] - (*_flow)[e])){
                                 _source_side[u] = true;
                                 nqueue.push_back(u);
                             }
