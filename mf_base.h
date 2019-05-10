@@ -167,17 +167,17 @@ namespace lemon{
                 }
                 Value rem = (*_capacity)[e] - (*_flow)[e];
                 Value excess = (*_excess)[u];
-                if(_tolerance.positive(excess - rem)){
-                    // saturating push
-                    (*_excess)[u] -= rem;
-                    (*_excess)[v] += rem;
-                    _flow->set(e, (*_capacity)[e]);
+                if(_tolerance.less(rem, excess)){ // rem + epsilon < excess
+					// saturating push
+					(*_excess)[u] -= rem;
+					(*_excess)[v] += rem;
+					_flow->set(e, (*_capacity)[e]);
                 }
                 else {
-                    // no saturating push
-                    (*_excess)[u] = 0;
-                    (*_excess)[v] += excess;
-                    _flow->set(e, (*_flow)[e] + excess);
+					// non-saturating push
+					(*_excess)[u] = 0;
+					(*_excess)[v] += excess;
+					_flow->set(e, (*_flow)[e] + excess);
                 }
             }
             // push flow back from Node u to Node v
@@ -187,7 +187,7 @@ namespace lemon{
                 }
                 Value rem = (*_flow)[e];
                 Value excess = (*_excess)[u];
-                if(_tolerance.positive(excess - rem)){
+                if(_tolerance.less(rem, excess)){
                     // saturating push
                     (*_excess)[u] -= rem;
                     (*_excess)[v] += rem;
@@ -204,7 +204,7 @@ namespace lemon{
                 _elevator->lift(n, new_level + 1);
             }
             void discharge(const Node& n) {
-                while((*_excess)[n] > 0){
+                while(_tolerance.positive((*_excess)[n])){
                     int new_level = 2 * _elevator->maxLevel();
                     for(OutArcIt e(_graph, n); e != INVALID; ++e){
                         Node v = _graph.target(e);
@@ -212,12 +212,12 @@ namespace lemon{
                             if((*_elevator)[n] == (*_elevator)[v] + 1){
                                 push(n, v, e);
                             }
-                            else if(new_level > (*_elevator)[v]){
+							if ((*_excess)[n] == 0)
+								break;
+                            if(new_level > (*_elevator)[v]){
                                 new_level = (*_elevator)[v];
                             }
                         }
-                        if ((*_excess)[n] == 0)
-                            break;
                     }
                     if ((*_excess)[n] == 0)
                         break;
@@ -228,17 +228,24 @@ namespace lemon{
                             if((*_elevator)[n] == (*_elevator)[v] + 1) {
                                 push_back(n, v, e); // push back the flow
                             }
-                            else if (new_level > (*_elevator)[v]) {
+							if ((*_excess)[n] == 0)
+								break;
+                            if (new_level > (*_elevator)[v]) {
                                 new_level = (*_elevator)[v];
                             }
                         }
-                        if ((*_excess)[n] == 0)
-                            break;
                     }
                     if ((*_excess)[n] == 0)
                         break;
-                    relabel(n, new_level);
+					if (new_level + 1 < 2 * _elevator->maxLevel())
+						relabel(n, new_level);
+					else{
+						// lift to maximal, no other node can push (or pushback to Node n)
+						_elevator->lift(n, 2 * _elevator->maxLevel() - 1);
+						break;
+					}
                 }
+				(*_excess)[n] == 0;
                 _elevator->deactivate(n);
             }
             
