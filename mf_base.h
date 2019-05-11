@@ -245,7 +245,7 @@ namespace lemon{
 						break;
 					}
                 }
-				(*_excess)[n] == 0;
+				(*_excess)[n] = 0;
                 _elevator->deactivate(n);
             }
             
