@@ -1,0 +1,10 @@
+@nodes
+label
+0
+1
+2
+@arcs
+		label	capacity
+0	1	0	1
+0	2	1	1
+1	2	2	5

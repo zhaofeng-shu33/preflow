@@ -19,6 +19,7 @@ def convert(filename):
         if(dic.get('weight')):
             w = dic['weight']
         Ls.append('\t'.join([i, j, str(edge_cnt), str(w)]))
+        edge_cnt += 1
     with open(filename.replace('gml','lgf'),'w') as f:
         f.write('\n'.join(Ls))
 
