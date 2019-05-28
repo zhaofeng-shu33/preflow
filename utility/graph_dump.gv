@@ -6,8 +6,8 @@ strict digraph  {
 4;
 5;
 6;
-7 [label="t"];
-8 [label="s"];
+7 [label="target"];
+8 [label="source"];
 0 -> 7  [label="0.421287"];
 0 -> 1  [label="0.982591"];
 0 -> 2  [label="0.234439"];
