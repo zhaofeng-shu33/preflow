@@ -4,7 +4,7 @@ currently only digraph convertion is supported.
 
 import argparse
 import networkx as nx
-import pdb
+import os
 def convert(filename):
     digraph = toNetworkX(filename)
     Ls = ['@nodes', 'label']
@@ -35,4 +35,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if(args.debug):
         pdb.set_trace()
-    convert(args.filename)
+    convert(os.path.join('build', args.filename))
