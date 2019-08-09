@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
-
-if(WIN32)
+if("${CMAKE_PROJECT_NAME}" STREQUAL "")
+  if(WIN32)
     if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
       set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
           CACHE STRING "")
@@ -8,9 +8,11 @@ if(WIN32)
     if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
       set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
     endif()
+  endif()
+  project(preflow LANGUAGES CXX)      
 endif()
 
-project(preflow LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 11)
 option(ENABLE_TESTING "Enable testing" OFF)
 option(USE_BOOST_OPTION "Use Boost Options" ON)
