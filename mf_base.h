@@ -260,6 +260,9 @@ namespace lemon{
             ~Preflow_Relabel(){
                 destroyStructures();
             }
+			const FlowMap& flowMap() const {
+				return *_flow;
+			}
             // after capacity change, reinit the class, used by parametric maximal flow
             // only second phase is needed to run
             void reinit() {
@@ -285,6 +288,86 @@ namespace lemon{
                     }
                 }
             }
+			bool init(const FlowMap& flowMap) {
+				createStructures();
+
+				for (ArcIt e(_graph); e != INVALID; ++e) {
+					_flow->set(e, flowMap[e]);
+				}
+
+				for (NodeIt n(_graph); n != INVALID; ++n) {
+					Value excess = 0;
+					for (InArcIt e(_graph, n); e != INVALID; ++e) {
+						excess += (*_flow)[e];
+					}
+					for (OutArcIt e(_graph, n); e != INVALID; ++e) {
+						excess -= (*_flow)[e];
+					}
+					if (_tolerance.negative(excess) && n != _source) return false;
+					(*_excess)[n] = excess;
+				}
+
+				typename Digraph::template NodeMap<bool> reached(_graph, false);
+				Elevator* _level = _elevator;
+				_level->initStart();
+				_level->initAddItem(_target);
+
+				std::vector<Node> queue;
+				reached[_source] = true;
+
+				queue.push_back(_target);
+				reached[_target] = true;
+				while (!queue.empty()) {
+					_level->initNewLevel();
+					std::vector<Node> nqueue;
+					for (int i = 0; i < int(queue.size()); ++i) {
+						Node n = queue[i];
+						for (InArcIt e(_graph, n); e != INVALID; ++e) {
+							Node u = _graph.source(e);
+							if (!reached[u] &&
+								_tolerance.positive((*_capacity)[e] - (*_flow)[e])) {
+								reached[u] = true;
+								_level->initAddItem(u);
+								nqueue.push_back(u);
+							}
+						}
+						for (OutArcIt e(_graph, n); e != INVALID; ++e) {
+							Node v = _graph.target(e);
+							if (!reached[v] && _tolerance.positive((*_flow)[e])) {
+								reached[v] = true;
+								_level->initAddItem(v);
+								nqueue.push_back(v);
+							}
+						}
+					}
+					queue.swap(nqueue);
+				}
+				_level->initFinish();
+
+				for (OutArcIt e(_graph, _source); e != INVALID; ++e) {
+					Value rem = (*_capacity)[e] - (*_flow)[e];
+					if (_tolerance.positive(rem)) {
+						Node u = _graph.target(e);
+						if ((*_level)[u] == _level->maxLevel()) continue;
+						_flow->set(e, (*_capacity)[e]);
+						(*_excess)[u] += rem;
+					}
+				}
+				for (InArcIt e(_graph, _source); e != INVALID; ++e) {
+					Value rem = (*_flow)[e];
+					if (_tolerance.positive(rem)) {
+						Node v = _graph.source(e);
+						if ((*_level)[v] == _level->maxLevel()) continue;
+						_flow->set(e, 0);
+						(*_excess)[v] += rem;
+					}
+				}
+				for (NodeIt n(_graph); n != INVALID; ++n)
+					if (n != _source && n != _target && _tolerance.positive((*_excess)[n]))
+						_level->activate(n);
+
+				return true;
+			}
             void init() {
                 createStructures();
 
