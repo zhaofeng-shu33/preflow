@@ -92,6 +92,33 @@ TEST(Preflow_Relabel, Run){
         EXPECT_EQ(pf.minCut(n), pf_relabel.minCut(n));
     }
 }
+
+TEST(Preflow_Relabel, MinSourceSide) {
+	typedef ListDigraph Digraph;
+	typedef int T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	typedef ListDigraph::Arc Arc;
+	Digraph g;
+	Node n0 = g.addNode();
+	Node n1 = g.addNode();
+	Node n2 = g.addNode();
+	ArcMap aM(g);
+	Arc a1 = g.addArc(n0, n1);
+	Arc a2 = g.addArc(n1, n2);
+	aM[a1] = 0;
+	aM[a2] = 0;
+	Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, n0, n2);
+	Preflow<Digraph, ArcMap> pf(g, aM, n0, n2);
+	pf.run();
+	pf_relabel.init();
+	pf_relabel.startFirstPhase();
+	EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
+	pf_relabel.startSecondPhase(false);
+	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+		EXPECT_EQ(pf.minCut(n), pf_relabel.minCutSink(n));
+	}
+}
 TEST(Preflow_Relabel, Official) {
     typedef ListDigraph Digraph;
     typedef int T;

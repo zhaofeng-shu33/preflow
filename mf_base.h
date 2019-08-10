@@ -139,9 +139,10 @@ namespace lemon{
             ExcessMap* _excess;
             
             Tolerance _tolerance;
-            
-            BoolNodeMap _source_side;
-
+            //! minimum source side cut
+            BoolNodeMap _source_side; 
+			//! minimum sink side cut
+			BoolNodeMap _sink_side;
             void createStructures() {
                 _node_num = countNodes(_graph);
                 if(!_flow){
@@ -255,7 +256,7 @@ namespace lemon{
                 : _graph(digraph), _capacity(&capacity),
                   _node_num(0), _source(source), _target(target),
                   _flow(NULL), _elevator(NULL), _excess(NULL),
-                  _tolerance(), _source_side(digraph){}
+                  _tolerance(), _source_side(digraph), _sink_side(digraph){}
             
             ~Preflow_Relabel(){
                 destroyStructures();
@@ -448,38 +449,77 @@ namespace lemon{
             }
 
             // the second phase calculate the minimal cut set
-            void startSecondPhase() {
+            void startSecondPhase(bool getSourceSide = true) {
                 pushRelabel(false);
-                for (NodeIt n(_graph); n != INVALID; ++n) {
-                    _source_side[n] = false;
-                }
-                std::vector<Node> queue;
-                queue.push_back(_source);
-                _source_side[_source] = true;
-                // breadth-first search
-                while (!queue.empty()) {
-                    std::vector<Node> nqueue;
-                    for (int i = 0; i < int(queue.size()); i++) {
-                        Node n = queue[i];
-                        for (OutArcIt e(_graph, n); e != INVALID; ++e) {
-                            Node u = _graph.target(e);
-                            if(!_source_side[u] && _tolerance.positive((*_capacity)[e] - (*_flow)[e])){
-                                _source_side[u] = true;
-                                nqueue.push_back(u);
-                            }
-                        }
-                        for (InArcIt e(_graph, n); e != INVALID; ++e) {
-                            Node u = _graph.source(e);
-                            if (!_source_side[u] && _tolerance.positive((*_flow)[e])) {
-                                _source_side[u] = true;
-                                nqueue.push_back(u);
-                            }
-                        }
-                    }
-                    queue.swap(nqueue);
-                }
+				if (getSourceSide)
+					get_min_source_side();
+				else
+					get_min_sink_side();
             }
-
+			void get_min_source_side() {
+				for (NodeIt n(_graph); n != INVALID; ++n) {
+					_source_side[n] = false;
+				}
+				std::vector<Node> queue;
+				queue.push_back(_source);
+				_source_side[_source] = true;
+				// breadth-first search
+				while (!queue.empty()) {
+					std::vector<Node> nqueue;
+					for (int i = 0; i < int(queue.size()); i++) {
+						Node n = queue[i];
+						for (OutArcIt e(_graph, n); e != INVALID; ++e) {
+							Node u = _graph.target(e);
+							if (!_source_side[u] && _tolerance.positive((*_capacity)[e] - (*_flow)[e])) {
+								_source_side[u] = true;
+								nqueue.push_back(u);
+							}
+						}
+						for (InArcIt e(_graph, n); e != INVALID; ++e) {
+							Node u = _graph.source(e);
+							if (!_source_side[u] && _tolerance.positive((*_flow)[e])) {
+								_source_side[u] = true;
+								nqueue.push_back(u);
+							}
+						}
+					}
+					queue.swap(nqueue);
+				}
+			}
+			void get_min_sink_side() {
+				for (NodeIt n(_graph); n != INVALID; ++n) {
+					_sink_side[n] = false;
+				}
+				std::vector<Node> queue;
+				queue.push_back(_target);
+				_sink_side[_target] = true;
+				// breadth-first search
+				while (!queue.empty()) {
+					std::vector<Node> nqueue;
+					for (int i = 0; i < int(queue.size()); i++) {
+						Node n = queue[i];
+						for (OutArcIt e(_graph, n); e != INVALID; ++e) {
+							Node u = _graph.target(e);
+							if (!_sink_side[u] && _tolerance.positive((*_flow)[e])) {
+								_sink_side[u] = true;
+								nqueue.push_back(u);
+							}
+						}
+						for (InArcIt e(_graph, n); e != INVALID; ++e) {
+							Node u = _graph.source(e);
+							if (!_sink_side[u] && _tolerance.positive((*_capacity)[e] - (*_flow)[e])) {
+								_sink_side[u] = true;
+								nqueue.push_back(u);
+							}
+						}
+					}
+					queue.swap(nqueue);
+				}
+			}
+			// returns true if node is source side cut of min sink side set
+			bool minCutSink(const Node& node) const {
+				return !_sink_side[node];
+			}
             // source side minCut
             bool minCut(const Node& node) const {
                 return _source_side[node];
