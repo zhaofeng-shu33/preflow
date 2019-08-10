@@ -7,6 +7,13 @@ import networkx as nx
 import os
 def convert(filename):
     digraph = toNetworkX(filename)
+    str = write_lgf(digraph)
+    with open(filename.replace('gml','lgf'),'w') as f:
+        f.write(str)
+
+
+def write_lgf(digraph):
+    # convert networkx digraph to lgf string
     Ls = ['@nodes', 'label']
     for i in digraph.nodes:
         Ls.append(i)
@@ -18,11 +25,9 @@ def convert(filename):
         w = 1
         if(dic.get('weight')):
             w = dic['weight']
-        Ls.append('\t'.join([i, j, str(edge_cnt), str(w)]))
+        Ls.append('\t'.join([str(i), str(j), str(edge_cnt), str(w)]))
         edge_cnt += 1
-    with open(filename.replace('gml','lgf'),'w') as f:
-        f.write('\n'.join(Ls))
-
+    return '\n'.join(Ls)
     
 def toNetworkX(filename):
     digraph = nx.gml.read_gml(filename)
