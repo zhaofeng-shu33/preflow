@@ -17,6 +17,10 @@ def write_lgf(digraph):
     Ls = ['@nodes', 'label']
     for i in digraph.nodes:
         Ls.append(i)
+    Ls.sort()
+    if(type(Ls[0]) is not str):
+        for i in range(len(Ls)):
+            Ls[i] = str(Ls[i])
     Ls.append('@arcs')
     Ls.append('\t\tlabel\tcapacity')
     edge_cnt = 0
