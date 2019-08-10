@@ -6,7 +6,7 @@ import argparse
 import networkx as nx
 import os
 def convert(filename):
-    digraph = toNetworkX(filename)
+    digraph = toNetworkX_fromFile(filename)
     str = write_lgf(digraph)
     with open(filename.replace('gml','lgf'),'w') as f:
         f.write(str)
@@ -29,7 +29,7 @@ def write_lgf(digraph):
         edge_cnt += 1
     return '\n'.join(Ls)
     
-def toNetworkX(filename):
+def toNetworkX_fromFile(filename):
     digraph = nx.gml.read_gml(filename)
     return digraph
     
