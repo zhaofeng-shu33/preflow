@@ -264,6 +264,9 @@ namespace lemon{
 			const FlowMap& flowMap() const {
 				return *_flow;
 			}
+			const Elevator& elevator() const {
+				return *_elevator;
+			}
             // after capacity change, reinit the class, used by parametric maximal flow
             // only second phase is needed to run
             void reinit() {
@@ -366,6 +369,50 @@ namespace lemon{
 				for (NodeIt n(_graph); n != INVALID; ++n)
 					if (n != _source && n != _target && _tolerance.positive((*_excess)[n]))
 						_level->activate(n);
+
+				return true;
+			}
+			bool init(const FlowMap& flowMap, Elevator* ele) {
+				_elevator = ele; // elevator is not initialized
+				createStructures();
+
+				for (ArcIt e(_graph); e != INVALID; ++e) {
+					_flow->set(e, flowMap[e]);
+				}
+
+				for (NodeIt n(_graph); n != INVALID; ++n) {
+					Value excess = 0;
+					for (InArcIt e(_graph, n); e != INVALID; ++e) {
+						excess += (*_flow)[e];
+					}
+					for (OutArcIt e(_graph, n); e != INVALID; ++e) {
+						excess -= (*_flow)[e];
+					}
+					if (_tolerance.negative(excess) && n != _source) return false;
+					(*_excess)[n] = excess;
+				}
+
+				for (OutArcIt e(_graph, _source); e != INVALID; ++e) {
+					Value rem = (*_capacity)[e] - (*_flow)[e];
+					if (_tolerance.positive(rem)) {
+						Node u = _graph.target(e);
+						if ((*_elevator)[u] == _elevator->maxLevel()) continue;
+						_flow->set(e, (*_capacity)[e]);
+						(*_excess)[u] += rem;
+					}
+				}
+				for (InArcIt e(_graph, _source); e != INVALID; ++e) {
+					Value rem = (*_flow)[e];
+					if (_tolerance.positive(rem)) {
+						Node v = _graph.source(e);
+						if ((*_elevator)[v] == _elevator->maxLevel()) continue;
+						_flow->set(e, 0);
+						(*_excess)[v] += rem;
+					}
+				}
+				for (NodeIt n(_graph); n != INVALID; ++n)
+					if (n != _source && n != _target && _tolerance.positive((*_excess)[n]))
+						_elevator->activate(n);
 
 				return true;
 			}
