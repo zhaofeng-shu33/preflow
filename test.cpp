@@ -114,9 +114,9 @@ TEST(Preflow_Relabel, MinSourceSide) {
 	pf_relabel.init();
 	pf_relabel.startFirstPhase();
 	EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
-	pf_relabel.startSecondPhase(false);
+	pf_relabel.startSecondPhase();
 	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
-		EXPECT_EQ(pf.minCut(n), pf_relabel.minCutSink(n));
+		EXPECT_EQ(pf.minCut(n), pf_relabel.minCut(n));
 	}
 }
 TEST(Preflow_Relabel, Official) {
@@ -172,8 +172,8 @@ TEST(Preflow_Relabel, Tolerance) {
 	pf_relabel.init();
 	pf_relabel.startFirstPhase();
 	EXPECT_EQ(pf_relabel.flowValue(), pf.flowValue());
-	pf_relabel.startSecondPhase();
+	pf_relabel.startSecondPhase(true);
 	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
-		EXPECT_EQ(pf.minCut(n), pf_relabel.minCut(n));
+		EXPECT_EQ(pf.minCut(n), pf_relabel.minCutSource(n));
 	}
 }

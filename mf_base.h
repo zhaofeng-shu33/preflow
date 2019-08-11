@@ -496,7 +496,7 @@ namespace lemon{
             }
 
             // the second phase calculate the minimal cut set
-            void startSecondPhase(bool getSourceSide = true) {
+            void startSecondPhase(bool getSourceSide = false) {
                 pushRelabel(false);
 				if (getSourceSide)
 					get_min_source_side();
@@ -563,13 +563,13 @@ namespace lemon{
 					queue.swap(nqueue);
 				}
 			}
-			// returns true if node is source side cut of min sink side set
-			bool minCutSink(const Node& node) const {
-				return !_sink_side[node];
+			// source side minCut
+			bool minCutSource(const Node& node) const {
+				return _source_side[node];
 			}
-            // source side minCut
+			// returns true if node is source side cut of min sink side set
             bool minCut(const Node& node) const {
-                return _source_side[node];
+                return !_sink_side[node];
             }
 
             void runMinCut() {
