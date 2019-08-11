@@ -56,7 +56,7 @@ if(ENABLE_TESTING)
     endif()  
     # copy the graph data file to build directory
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test.lgf ${PROJECT_BINARY_DIR}/test.lgf COPYONLY)
-    if("${CMAKE_PROJECT_NAME}" STREQUAL "")
+    if(NOT "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test.lgf ${PROJECT_BINARY_DIR}/preflow/test.lgf COPYONLY)
     endif()
     add_test(NAME test_mf COMMAND test_mf)
