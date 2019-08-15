@@ -10,6 +10,7 @@ namespace lemon{
     public:
         typedef int Value;
         typedef typename std::list<Item>::iterator iterator; 
+		typedef typename GR::NodeIt NodeIt;
     private:
         typedef typename ItemSetTraits<GR, Item>::
         template Map<int>::Type IntMap;
@@ -30,7 +31,7 @@ namespace lemon{
 		RelabelElevator(const RelabelElevator& ele): 
 			_graph(ele._graph), _max_level(ele._max_level),relabel_list(ele.relabel_list),
 			_level(ele._graph), _active(ele._graph){
-			for (ListDigraph::NodeIt n(_graph); n != INVALID; ++n) {
+			for (NodeIt n(_graph); n != INVALID; ++n) {
 				_level[n] = ele._level[n];
 			}
 			// no need to copy the active nodemap
