@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <lemon/adaptors.h>
 #include <lemon/concepts/digraph.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/list_graph.h>
@@ -224,4 +225,14 @@ TEST(Preflow_Relabel, GetAndSetElevator) {
 	pf_relabel2.startFirstPhase();
 	pf_relabel2.startSecondPhase();
 	EXPECT_DOUBLE_EQ(pf_relabel2.flowValue(), 13);
+}
+
+TEST(Preflow_Relabel, ReverseElevator){
+    // the copy constructor works for ReverseDigraph
+    typedef ReverseDigraph<ListDigraph> Digraph;
+    typedef RelabelElevator<Digraph, typename Digraph::Node>  Elevator;
+    ListDigraph g;
+    Digraph g_r(g);
+    Elevator a(g_r, 2);
+    Elevator a2(a);
 }
