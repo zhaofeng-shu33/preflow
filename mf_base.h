@@ -26,7 +26,16 @@ namespace lemon{
         RelabelElevator(const GR& graph, int max_level)
         : _graph(graph), _max_level(max_level),
           _level(graph), _active(graph), _init_level(0){}
-          
+        
+		RelabelElevator(const RelabelElevator& ele): 
+			_graph(ele._graph), _max_level(ele._max_level),relabel_list(ele.relabel_list),
+			_level(ele._graph), _active(ele._graph){
+			for (ListDigraph::NodeIt n(_graph); n != INVALID; ++n) {
+				_level[n] = ele._level[n];
+			}
+			// no need to copy the active nodemap
+		}
+
         void activate(Item i) {
             _active[i] = true;
         }
@@ -61,12 +70,11 @@ namespace lemon{
         }    
     private:
         
-        int _init_level;
+        int _init_level = 0;
     
     public:
         
         void initStart() {
-            _init_level = 0;
             for(typename ItemSetTraits<GR, Item>::ItemIt i(_graph);
                 i != INVALID; ++i) {
                 _level[i] = -1;
@@ -137,7 +145,7 @@ namespace lemon{
             
             typedef typename Digraph::template NodeMap<Value> ExcessMap;
             ExcessMap* _excess;
-            
+			bool is_local_elevator = true;
             Tolerance _tolerance;
             //! minimum source side cut
             BoolNodeMap _source_side; 
@@ -158,7 +166,8 @@ namespace lemon{
             
             void destroyStructures() {
                 delete _flow;
-                delete _elevator;
+				if(is_local_elevator)
+	                delete _elevator;
                 delete _excess;
             }
             // push flow from Node u to Node v
@@ -264,8 +273,10 @@ namespace lemon{
 			const FlowMap& flowMap() const {
 				return *_flow;
 			}
-			const Elevator& elevator() const {
-				return *_elevator;
+			Elevator* elevator() {
+				if (is_local_elevator)
+					return new Elevator(*_elevator);
+				return _elevator;
 			}
             // after capacity change, reinit the class, used by parametric maximal flow
             // only second phase is needed to run
@@ -373,6 +384,7 @@ namespace lemon{
 				return true;
 			}
 			bool init(const FlowMap& flowMap, Elevator* ele) {
+				is_local_elevator = false;
 				_elevator = ele; // elevator is not initialized
 				createStructures();
 

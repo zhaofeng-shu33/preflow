@@ -177,3 +177,51 @@ TEST(Preflow_Relabel, Tolerance) {
 		EXPECT_EQ(pf.minCut(n), pf_relabel.minCutSource(n));
 	}
 }
+
+TEST(Preflow_Relabel, GetAndSetElevator) {
+	typedef ListDigraph Digraph;
+	typedef int T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	typedef ListDigraph::Arc Arc;
+	Digraph g;
+	Node n0 = g.addNode();
+	Node n1 = g.addNode();
+	Node n2 = g.addNode();
+	Node n3 = g.addNode();
+	Node n4 = g.addNode();
+	Node n5 = g.addNode();
+	ArcMap aM(g);
+	Arc a1 = g.addArc(n0, n1);
+	Arc a2 = g.addArc(n1, n2);
+	Arc a3 = g.addArc(n0, n3);
+	Arc a4 = g.addArc(n3, n4);
+	Arc a5 = g.addArc(n2, n5);
+	Arc a6 = g.addArc(n4, n5);
+	Arc a7 = g.addArc(n2, n3);
+	Arc a8 = g.addArc(n4, n1);
+	aM[a1] = 15;
+	aM[a2] = 12;
+	aM[a3] = 4;
+	aM[a4] = 10;
+	aM[a5] = 7;
+	aM[a6] = 10;
+	aM[a7] = 3;
+	aM[a8] = 5;
+	Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, n0, n5);
+	pf_relabel.run();
+	Preflow_Relabel<Digraph, ArcMap>::Elevator* ele = pf_relabel.elevator();
+	Preflow_Relabel<Digraph, ArcMap> pf_relabel2(g, aM, n0, n5);
+	aM[a5] = 6;
+	Preflow_Relabel<Digraph, ArcMap>::FlowMap new_flowMap(g);
+	const Preflow_Relabel<Digraph, ArcMap>::FlowMap& old_flowMap = pf_relabel.flowMap();
+	for (ListDigraph::ArcIt a(g); a != INVALID; ++a) {
+		new_flowMap[a] = old_flowMap[a];
+	}
+	if (old_flowMap[a5] > aM[a5])
+		new_flowMap[a5] = aM[a5];
+	pf_relabel2.init(new_flowMap, ele);
+	pf_relabel2.startFirstPhase();
+	pf_relabel2.startSecondPhase();
+	EXPECT_DOUBLE_EQ(pf_relabel2.flowValue(), 13);
+}
