@@ -401,7 +401,8 @@ namespace lemon{
 					for (OutArcIt e(_graph, n); e != INVALID; ++e) {
 						excess -= (*_flow)[e];
 					}
-					if (_tolerance.negative(excess) && n != _source) return false;
+					if (_tolerance.negative(excess) && n != _source) 
+						return false;
 					(*_excess)[n] = excess;
 				}
 
