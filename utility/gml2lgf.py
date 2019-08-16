@@ -14,10 +14,11 @@ def convert(filename):
 
 def write_lgf(digraph):
     # convert networkx digraph to lgf string
-    Ls = ['@nodes', 'label']
+    Ls = []
     for i in digraph.nodes:
-        Ls.append(i)
+        Ls.append(str(i))
     Ls.sort()
+    Ls = ['@nodes', 'label'] + Ls
     if(type(Ls[0]) is not str):
         for i in range(len(Ls)):
             Ls[i] = str(Ls[i])
