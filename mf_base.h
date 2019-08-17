@@ -2,6 +2,9 @@
 #include <list>
 #include <lemon/tolerance.h>
 #include <lemon/elevator.h>
+#ifdef INTERRUPT
+#include <boost/thread.hpp>
+#endif
 namespace lemon{
     template<class GR, class Item>
     class RelabelElevator{
@@ -173,6 +176,9 @@ namespace lemon{
             }
             // push flow from Node u to Node v
             inline void push(const Node& u, const Node& v, const Arc& e) {
+#ifdef INTERRUPT
+				boost::this_thread::interruption_point();
+#endif
                 if(!_elevator->active(v) && v != _target){
                     _elevator->activate(v);
                 }
@@ -193,6 +199,9 @@ namespace lemon{
             }
             // push flow back from Node u to Node v
             inline void push_back(const Node& u, const Node& v, const Arc& e) {
+#ifdef INTERRUPT
+				boost::this_thread::interruption_point();
+#endif
                 if(!_elevator->active(v) && v != _source){
                     _elevator->activate(v);
                 }

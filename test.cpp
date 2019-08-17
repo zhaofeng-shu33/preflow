@@ -236,3 +236,35 @@ TEST(Preflow_Relabel, ReverseElevator){
     Elevator a(g_r, 2);
     Elevator a2(a);
 }
+#ifdef INTERRUPT
+void test_thread_interrupt(bool& is_interrupted) {
+	typedef ListDigraph Digraph;
+	typedef int T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	Digraph g;
+	ArcMap cap(g);
+	Node s, t;
+	digraphReader(g, "test.lgf")
+		.arcMap("capacity", cap)
+		.node("source", s)
+		.node("target", t)
+		.run();
+	Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, cap, s, t);
+	try {
+		pf_relabel.run();
+	}
+	catch (boost::thread_interrupted&) {
+		is_interrupted = true;
+		return;
+	}
+	is_interrupted = false;
+}
+TEST(Preflow_Relabel, Interrupt) {
+	bool is_interrupted;
+	boost::thread t(test_thread_interrupt, std::ref(is_interrupted));
+	t.interrupt();
+	t.join();
+	EXPECT_TRUE(is_interrupted);
+}
+#endif
