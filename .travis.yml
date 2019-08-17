@@ -7,42 +7,17 @@ matrix:
     addons:
       apt:
         sources:
-          - ubuntu-toolchain-r-test
+          - sourceline: 'ppa:zhaofeng-shu33/liblemon'
+          - sourceline: 'ppa:zhaofeng-shu33/gtest'
         packages:
-          - g++-6
-    cache:
-      - directories:
-        - /usr/src/gtest
-  #- os: osx
+          - liblemon-dev
+          - liblemon1.3.1
+          - libgtest-dev
+          - libboost-all-dev
     
-before_install:
-  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gsl boost-python; fi 
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libgtest-dev libboost-all-dev; fi
-  # build and install gtest library manually  
-  - pushd /usr/src/gtest
-  - sudo chmod -R a+w ./
-  - cmake ./
-  - make
-  - sudo ln -s -t /usr/lib /usr/src/gtest/libgtest.a /usr/src/gtest/libgtest_main.a
-  - popd
-  - mkdir build
-  - cd build
-  # build and install liblemon
-  - wget http://lemon.cs.elte.hu/pub/sources/lemon-1.3.1.zip
-  - unzip lemon-1.3.1.zip -d ./  
-  - cd lemon-1.3.1
-  - echo "SET_TARGET_PROPERTIES(lemon PROPERTIES COMPILE_FLAGS \"-fPIC\")" >> lemon/CMakeLists.txt
-  - mkdir build
-  - cd build
-  - cmake ..
-  - make
-  - sudo make install
-  - pushd /usr/local/share/lemon/cmake
-  - sudo mv LEMONConfig.cmake lemonConfig.cmake
-  - popd
-  - cd ../..  
-  - cp ../test.lgf ./
+before_script:
   - cmake -DENABLE_TESTING=ON ../ 
+  
 script:
   - make
   - ./lgf_compute --filename test.lgf
