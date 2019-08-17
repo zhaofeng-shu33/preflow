@@ -14,7 +14,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 11)
 option(ENABLE_TESTING "Enable testing" OFF)
-option(USE_BOOST_INTERRUPT "Enable interrupting" OFF)
+option(USE_BOOST_INTERRUPT "Enable interrupting" ON)
 option(USE_BOOST_OPTION "Use Boost Options" ON)
 find_package(lemon REQUIRED)
 if(USE_BOOST_INTERRUPT)
