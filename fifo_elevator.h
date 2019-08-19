@@ -57,23 +57,25 @@ namespace lemon{
          bool getFront(Item& item, bool limit_max_level = false) {
 			 if (fifo_list.size() == 0)
 				 return false;
-			item = fifo_list.front();
 			if (limit_max_level) {
 				if (is_initialized == false) {
 					first_phase_item_pointer = fifo_list.begin();
 					is_initialized = true;
 				}
 				while (first_phase_item_pointer != fifo_list.end()) {
-					if (_level[item] < _max_level) {
+					item = *first_phase_item_pointer;
+					if (_level[item] < _max_level) {						
 						first_phase_item_pointer = fifo_list.erase(first_phase_item_pointer);
+						if (first_phase_item_pointer == fifo_list.end())
+							is_initialized = false;
 						return true;
 					}
-					first_phase_item_pointer++;
-					item = *first_phase_item_pointer;
+					first_phase_item_pointer++;					
 				}
 				return false;
 			}
 			else {
+				item = fifo_list.front();
 				fifo_list.pop_front();
 				return true;
 			}

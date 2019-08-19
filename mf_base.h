@@ -155,11 +155,11 @@ namespace lemon{
                             if((*_elevator)[n] == (*_elevator)[v] + 1){
                                 push(n, v, e);
                             }
+							else if (new_level > (*_elevator)[v]) {
+								new_level = (*_elevator)[v];
+							}
 							if ((*_excess)[n] == 0)
 								break;
-                            if(new_level > (*_elevator)[v]){
-                                new_level = (*_elevator)[v];
-                            }
                         }
                     }
                     if ((*_excess)[n] == 0)
@@ -171,11 +171,11 @@ namespace lemon{
                             if((*_elevator)[n] == (*_elevator)[v] + 1) {
                                 push_back(n, v, e); // push back the flow
                             }
+							else if (new_level > (*_elevator)[v]) {
+								new_level = (*_elevator)[v];
+							}
 							if ((*_excess)[n] == 0)
-								break;
-                            if (new_level > (*_elevator)[v]) {
-                                new_level = (*_elevator)[v];
-                            }
+								break;                            
                         }
                     }
                     if ((*_excess)[n] == 0)

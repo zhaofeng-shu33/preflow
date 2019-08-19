@@ -53,6 +53,7 @@ TEST(RelabelElevator, MoveToFront) {
 }
 
 TEST(Preflow_Relabel, Run){
+	// https://en.wikipedia.org/wiki/Push%E2%80%93relabel_maximum_flow_algorithm#Example
     typedef ListDigraph Digraph;
     typedef int T;
     typedef Digraph::ArcMap<T> ArcMap;    
@@ -312,4 +313,45 @@ TEST(FIFOElevator, GetFrontSecondPhase) {
 	get_item = re.getFront(n1, false);
 	EXPECT_TRUE(get_item);
 	EXPECT_EQ(g.id(n1), g.id(c));
+}
+TEST(Preflow_FIFO, RUN) {
+	typedef ListDigraph Digraph;
+	typedef int T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	typedef ListDigraph::Arc Arc;
+	Digraph g;
+	Node n0 = g.addNode();
+	Node n1 = g.addNode();
+	Node n2 = g.addNode();
+	Node n3 = g.addNode();
+	Node n4 = g.addNode();
+	Node n5 = g.addNode();
+	ArcMap aM(g);
+	Arc a1 = g.addArc(n0, n1);
+	Arc a2 = g.addArc(n1, n2);
+	Arc a3 = g.addArc(n0, n3);
+	Arc a4 = g.addArc(n3, n4);
+	Arc a5 = g.addArc(n2, n5);
+	Arc a6 = g.addArc(n4, n5);
+	Arc a7 = g.addArc(n2, n3);
+	Arc a8 = g.addArc(n4, n1);
+	aM[a1] = 15;
+	aM[a2] = 12;
+	aM[a3] = 4;
+	aM[a4] = 10;
+	aM[a5] = 7;
+	aM[a6] = 10;
+	aM[a7] = 3;
+	aM[a8] = 5;
+	Preflow_FIFO<Digraph, ArcMap> pf_fifo(g, aM, n0, n5);
+	Preflow<Digraph, ArcMap> pf(g, aM, n0, n5);
+	pf.run();
+	pf_fifo.init();
+	pf_fifo.startFirstPhase();
+	EXPECT_EQ(pf_fifo.flowValue(), pf.flowValue());
+	pf_fifo.startSecondPhase();
+	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+		EXPECT_EQ(pf.minCut(n), pf_fifo.minCut(n));
+	}
 }
