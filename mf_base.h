@@ -1,108 +1,12 @@
 #pragma once
-#include <list>
+#include <lemon/core.h>
 #include <lemon/tolerance.h>
-#include <lemon/elevator.h>
 #ifdef INTERRUPT
 #include <boost/thread.hpp>
 #endif
+#include "relabel_to_front_elevator.h"
+#include "fifo_elevator.h"
 namespace lemon{
-    template<class GR, class Item>
-    class RelabelElevator{
-        //relabel to front elevator
-        
-    public:
-        typedef int Value;
-        typedef typename std::list<Item>::iterator iterator; 
-		typedef typename GR::NodeIt NodeIt;
-    private:
-        typedef typename ItemSetTraits<GR, Item>::
-        template Map<int>::Type IntMap;
-        typedef typename ItemSetTraits<GR, Item>::
-        template Map<bool>::Type BoolMap;
-        
-        const GR &_graph;
-        int _max_level;
-        IntMap _level;
-        BoolMap _active;
-        std::list<Item> relabel_list;
-
-    public:
-        RelabelElevator(const GR& graph, int max_level)
-        : _graph(graph), _max_level(max_level),
-          _level(graph), _active(graph), _init_level(0){}
-        
-		RelabelElevator(const RelabelElevator& ele): 
-			_graph(ele._graph), _max_level(ele._max_level),relabel_list(ele.relabel_list),
-			_level(ele._graph), _active(ele._graph){
-			for (NodeIt n(_graph); n != INVALID; ++n) {
-				_level[n] = ele._level[n];
-			}
-			// no need to copy the active nodemap
-		}
-
-        void activate(Item i) {
-            _active[i] = true;
-        }
-        
-        void deactivate(Item i) {
-            _active[i] = false;
-        }
-        
-        bool active(Item i) const { return _active[i]; }
-        
-        int operator[](Item i) const { return _level[i]; }
-
-        void lift(Item i, int new_level) {
-            _level[i] = new_level;
-        }
-
-        int maxLevel() const {
-            return _max_level;
-        }
-
-        // move the Item to the front of relabel_list
-        void moveToFront(iterator item_it) {
-            Item item = *item_it;
-            relabel_list.erase(item_it);
-            relabel_list.push_front(item);
-        }
-        iterator begin() {
-            return relabel_list.begin();
-        }
-        iterator end() {
-            return relabel_list.end();
-        }    
-    private:
-        
-        int _init_level = 0;
-    
-    public:
-        
-        void initStart() {
-            for(typename ItemSetTraits<GR, Item>::ItemIt i(_graph);
-                i != INVALID; ++i) {
-                _level[i] = -1;
-                _active[i] = false;
-            }
-        }
-        void initAddItem(Item i) {
-            _level[i] = _init_level;
-            relabel_list.push_front(i);
-        }
-        void initNewLevel() {
-            ++_init_level;
-        }
-        void initFinish() {            
-            for (typename ItemSetTraits<GR, Item>::ItemIt i(_graph);
-                i != INVALID; ++i) {
-                if (_level[i] == -1) {
-                    relabel_list.push_back(i);
-                    _level[i] = _max_level;
-                }
-            }
-
-        }
-    };
 
     template <typename GR, typename CAP>
     struct Preflow_RelabelDefaultTraits {
@@ -119,11 +23,26 @@ namespace lemon{
         }
         typedef lemon::Tolerance<Value> Tolerance;
     };
+	template <typename GR, typename CAP>
+	struct Preflow_FIFODefaultTraits {
+		typedef GR Digraph;
+		typedef CAP CapacityMap;
+		typedef typename CapacityMap::Value Value;
+		typedef typename Digraph::template ArcMap<Value> FlowMap;
+		static FlowMap* createFlowMap(const Digraph& digraph) {
+			return new FlowMap(digraph);
+		}
+		typedef FIFOElevator<Digraph, typename Digraph::Node> Elevator;
+		static Elevator* createElevator(const Digraph& digraph, int max_level) {
+			return new Elevator(digraph, max_level);
+		}
+		typedef lemon::Tolerance<Value> Tolerance;
+	};
 
     template <typename GR,
-              typename CAP = typename GR::template ArcMap<int>,
-              typename TR = Preflow_RelabelDefaultTraits<GR, CAP> >
-    class Preflow_Relabel{
+              typename CAP,
+              typename TR>
+    class Preflow_Base{
         
         public:
             // for linked list we use std::list<Node>
@@ -140,12 +59,9 @@ namespace lemon{
             const Digraph& _graph;
             const CapacityMap* _capacity;
             
-            int _node_num;
+            int _node_num;            
             
-            Node _source, _target;
-            
-            FlowMap* _flow;            
-            Elevator* _elevator;
+            FlowMap* _flow;                        
             
             typedef typename Digraph::template NodeMap<Value> ExcessMap;
             ExcessMap* _excess;
@@ -155,6 +71,12 @@ namespace lemon{
             BoolNodeMap _source_side; 
 			//! minimum sink side cut
 			BoolNodeMap _sink_side;
+
+		protected:
+			Elevator* _elevator;
+			Node _source, _target;
+
+		private:
             void createStructures() {
                 _node_num = countNodes(_graph);
                 if(!_flow){
@@ -223,7 +145,8 @@ namespace lemon{
             inline void relabel(const Node& n, int new_level) {
                 _elevator->lift(n, new_level + 1);
             }
-            void discharge(const Node& n) {
+		protected:
+			void discharge(const Node& n) {
                 while(_tolerance.positive((*_excess)[n])){
                     int new_level = 2 * _elevator->maxLevel();
                     for(OutArcIt e(_graph, n); e != INVALID; ++e){
@@ -270,16 +193,17 @@ namespace lemon{
             }
             
         public:     
-            Preflow_Relabel(const Digraph& digraph, const CapacityMap& capacity, 
+            Preflow_Base(const Digraph& digraph, const CapacityMap& capacity, 
                             Node source, Node target)
                 : _graph(digraph), _capacity(&capacity),
                   _node_num(0), _source(source), _target(target),
                   _flow(NULL), _elevator(NULL), _excess(NULL),
                   _tolerance(), _source_side(digraph), _sink_side(digraph){}
             
-            ~Preflow_Relabel(){
+            ~Preflow_Base(){
                 destroyStructures();
             }
+			virtual void pushRelabel(bool limit_max_level) = 0;
 			const FlowMap& flowMap() const {
 				return *_flow;
 			}
@@ -487,28 +411,6 @@ namespace lemon{
                 }
             }
             
-            void pushRelabel(bool limit_max_level) {
-                typename Elevator::iterator ele_it = _elevator->begin();
-                while(ele_it != _elevator->end()){
-                    if (limit_max_level && (*_elevator)[*ele_it] >= _elevator->maxLevel()) {
-                        ele_it++;
-                        continue;
-                    }
-                    if (*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it)) {
-                        ele_it++;
-                        continue;
-                    }
-                    Value old_label = (*_elevator)[*ele_it];
-                    discharge(*ele_it);
-                    if((*_elevator)[*ele_it] > old_label){
-                        _elevator->moveToFront(ele_it);
-                        ele_it = _elevator->begin();
-                    }
-                    else{
-                        ele_it++;
-                    }
-                }
-            }
             
             Value flowValue() const {
                 return (*_excess)[_target];
@@ -606,5 +508,70 @@ namespace lemon{
                 startSecondPhase();
             }
     };
+	template <typename GR,
+		typename CAP = typename GR::template ArcMap<int>,
+		typename TR = Preflow_RelabelDefaultTraits<GR, CAP> >
+		class Preflow_Relabel : public Preflow_Base<GR, CAP, TR> {
+		public:
+			typedef TR Traits;
+			typedef typename Traits::Digraph Digraph;
+			typedef typename Traits::CapacityMap CapacityMap;
+			typedef typename Traits::Value Value;
+			typedef typename Traits::FlowMap FlowMap;
+			typedef typename Traits::Tolerance Tolerance;
+			typedef typename Traits::Elevator Elevator;
+		private:
+			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+		public:
+			Preflow_Relabel(const Digraph& digraph, const CapacityMap& capacity,
+				Node source, Node target) : Preflow_Base(digraph, capacity, source, target) {}
+			void pushRelabel(bool limit_max_level) {
+				typename Elevator::iterator ele_it = _elevator->begin();
+				while (ele_it != _elevator->end()) {
+					if (limit_max_level && (*_elevator)[*ele_it] >= _elevator->maxLevel()) {
+						ele_it++;
+						continue;
+					}
+					if (*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it)) {
+						ele_it++;
+						continue;
+					}
+					Value old_label = (*_elevator)[*ele_it];
+					discharge(*ele_it);
+					if ((*_elevator)[*ele_it] > old_label) {
+						_elevator->moveToFront(ele_it);
+						ele_it = _elevator->begin();
+					}
+					else {
+						ele_it++;
+					}
+				}
+			}
 
+	};
+	template <typename GR,
+		typename CAP = typename GR::template ArcMap<int>,
+		typename TR = Preflow_FIFODefaultTraits<GR, CAP> >
+		class Preflow_FIFO : public Preflow_Base<GR, CAP, TR> {
+		public:
+			typedef TR Traits;
+			typedef typename Traits::Digraph Digraph;
+			typedef typename Traits::CapacityMap CapacityMap;
+			typedef typename Traits::Value Value;
+			typedef typename Traits::FlowMap FlowMap;
+			typedef typename Traits::Tolerance Tolerance;
+			typedef typename Traits::Elevator Elevator;
+		private:
+			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+		public:
+			Preflow_FIFO(const Digraph& digraph, const CapacityMap& capacity,
+				Node source, Node target) : Preflow_Base(digraph, capacity, source, target) {}
+			void pushRelabel(bool limit_max_level) {
+				Node current_discharge_node;
+				while (_elevator->getFront(current_discharge_node, limit_max_level)) {
+					discharge(current_discharge_node);
+				}				
+			}
+
+	};
 }

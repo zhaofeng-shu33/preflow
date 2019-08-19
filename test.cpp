@@ -268,3 +268,48 @@ TEST(Preflow_Relabel, Interrupt) {
 	EXPECT_TRUE(is_interrupted);
 }
 #endif
+
+TEST(FIFOElevator, GetFrontFirstPhase) {
+	typedef ListDigraph::Digraph Digraph;
+	typedef Digraph::Node Item;
+	Digraph g;
+	Item n1 = g.addNode();
+	Item n2 = g.addNode();
+	FIFOElevator<Digraph, Item> fifo(g, 2);
+	fifo.activate(n2);
+	Item n3;
+	bool get_result = fifo.getFront(n3);
+	EXPECT_TRUE(get_result);
+	EXPECT_EQ(g.id(n3), g.id(n2));
+	get_result = fifo.getFront(n3);
+	EXPECT_FALSE(get_result);
+}
+
+TEST(FIFOElevator, GetFrontSecondPhase) {
+	typedef ListDigraph Digraph;
+	typedef ListDigraph::Node Item;
+	typedef FIFOElevator<Digraph, Item> FIFOElevator;
+	Digraph g;
+	Item a = g.addNode();
+	Item b = g.addNode();
+	Item c = g.addNode();
+	FIFOElevator re(g, 3);
+	re.initStart();
+	re.initAddItem(a);
+	re.initNewLevel();
+	re.initAddItem(b);
+	re.initFinish();
+	EXPECT_EQ(re[a], 0);
+	EXPECT_EQ(re[b], 1);
+	re.activate(c);
+	re.activate(a);
+	Item n1;
+	bool get_item = re.getFront(n1, true);
+	EXPECT_TRUE(get_item);
+	EXPECT_EQ(g.id(n1), g.id(a));
+	get_item = re.getFront(n1, true);
+	EXPECT_FALSE(get_item);
+	get_item = re.getFront(n1, false);
+	EXPECT_TRUE(get_item);
+	EXPECT_EQ(g.id(n1), g.id(c));
+}
