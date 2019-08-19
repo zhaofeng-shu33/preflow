@@ -569,7 +569,7 @@ namespace lemon{
 			void pushRelabel(bool limit_max_level) {
 				Node current_discharge_node;
 				while (this->_elevator->getFront(current_discharge_node, limit_max_level)) {
-					discharge(current_discharge_node);
+					this->discharge(current_discharge_node);
 				}				
 			}
 
