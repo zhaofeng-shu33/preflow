@@ -135,11 +135,24 @@ class ScalableGraph{
         }
         report["highest"] = time_used;
 
+		start_time = std::chrono::system_clock::now();
+		Preflow_FIFO<Digraph, ArcMap> pf_fifo(_graph, aM, _source, _target);
+		pf_fifo.run();
+		end_time = std::chrono::system_clock::now();
+		dtn = end_time - start_time;
+		time_used = std::chrono::duration_cast<std::chrono::milliseconds>(dtn).count() / 1000.0;
+		if (_verbose) {
+			std::cout << time_used << std::endl;
+		}
+		report["fifo"] = time_used;
+
         // check the flowvalue
         int pf_relabel_flow_value = pf_relabel.flowValue();
         assert(pf_relabel_flow_value == _layer_size);
         int pf_flow_value = pf.flowValue();
         assert(pf_flow_value == _layer_size);
+		int pf_fifo_flow_value = pf_fifo.flowValue();
+		assert(pf_fifo_flow_value == _layer_size);
     }
     
     //! get the time used to calculate the minimum cut set

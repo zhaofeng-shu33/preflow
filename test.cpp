@@ -355,3 +355,29 @@ TEST(Preflow_FIFO, RUN) {
 		EXPECT_EQ(pf.minCut(n), pf_fifo.minCut(n));
 	}
 }
+TEST(Preflow_FIFO, Official) {
+	typedef ListDigraph Digraph;
+	typedef int T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	// use official directed graph to test
+	Digraph g;
+	ArcMap cap(g);
+	Node s, t;
+	digraphReader(g, "test.lgf")
+		.arcMap("capacity", cap)
+		.node("source", s)
+		.node("target", t)
+		.run();
+	Preflow_FIFO<Digraph, ArcMap> pf_fifo(g, cap, s, t);
+	Preflow<Digraph, ArcMap> pf(g, cap, s, t);
+	pf.run();
+	pf_fifo.init();
+	pf_fifo.startFirstPhase();
+	EXPECT_EQ(pf_fifo.flowValue(), pf.flowValue());
+	pf_fifo.startSecondPhase();
+	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+		if (g.id(n) != 0 && g.id(n) != 7)
+			EXPECT_EQ(pf.minCut(n), pf_fifo.minCut(n));
+	}
+}
