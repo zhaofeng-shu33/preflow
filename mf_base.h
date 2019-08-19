@@ -524,23 +524,23 @@ namespace lemon{
 			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
 		public:
 			Preflow_Relabel(const Digraph& digraph, const CapacityMap& capacity,
-				Node source, Node target) : Preflow_Base(digraph, capacity, source, target) {}
+				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
 			void pushRelabel(bool limit_max_level) {
-				typename Elevator::iterator ele_it = _elevator->begin();
-				while (ele_it != _elevator->end()) {
-					if (limit_max_level && (*_elevator)[*ele_it] >= _elevator->maxLevel()) {
+				typename Elevator::iterator ele_it = this->_elevator->begin();
+				while (ele_it != this->_elevator->end()) {
+					if (limit_max_level && (*(this->_elevator))[*ele_it] >= this->_elevator->maxLevel()) {
 						ele_it++;
 						continue;
 					}
-					if (*ele_it == _source || *ele_it == _target || !_elevator->active(*ele_it)) {
+					if (*ele_it == this->_source || *ele_it == this->_target || !this->_elevator->active(*ele_it)) {
 						ele_it++;
 						continue;
 					}
-					Value old_label = (*_elevator)[*ele_it];
-					discharge(*ele_it);
-					if ((*_elevator)[*ele_it] > old_label) {
-						_elevator->moveToFront(ele_it);
-						ele_it = _elevator->begin();
+					Value old_label = (*(this->_elevator))[*ele_it];
+					this->discharge(*ele_it);
+					if ((*(this->_elevator))[*ele_it] > old_label) {
+						this->_elevator->moveToFront(ele_it);
+						ele_it = this->_elevator->begin();
 					}
 					else {
 						ele_it++;
@@ -565,11 +565,11 @@ namespace lemon{
 			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
 		public:
 			Preflow_FIFO(const Digraph& digraph, const CapacityMap& capacity,
-				Node source, Node target) : Preflow_Base(digraph, capacity, source, target) {}
+				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
 			void pushRelabel(bool limit_max_level) {
 				Node current_discharge_node;
-				while (_elevator->getFront(current_discharge_node, limit_max_level)) {
-					discharge(current_discharge_node);
+				while (this->_elevator->getFront(current_discharge_node, limit_max_level)) {
+					this->discharge(current_discharge_node);
 				}				
 			}
 
