@@ -39,7 +39,21 @@ namespace lemon{
 		}
 		typedef lemon::Tolerance<Value> Tolerance;
 	};
-
+    template <typename GR, typename CAP>
+    struct Preflow_HLDefaultTraits {
+        typedef GR Digraph;
+        typedef CAP CapacityMap;
+        typedef typename CapacityMap::Value Value;
+        typedef typename Digraph::template ArcMap<Value> FlowMap;
+        static FlowMap* createFlowMap(const Digraph& digraph) {
+            return new FlowMap(digraph);
+        }
+        typedef HLElevator<Digraph, typename Digraph::Node> Elevator;
+        static Elevator* createElevator(const Digraph& digraph, int max_level) {
+            return new Elevator(digraph, max_level);
+        }
+        typedef lemon::Tolerance<Value> Tolerance;
+    };
     template <typename GR,
               typename CAP,
               typename TR>
@@ -575,4 +589,30 @@ namespace lemon{
 			}
 
 	};
+
+    template <typename GR,
+        typename CAP = typename GR::template ArcMap<int>,
+        typename TR = Preflow_HLDefaultTraits<GR, CAP> >
+        class Preflow_HL : public Preflow_Base<GR, CAP, TR> {
+        public:
+            typedef TR Traits;
+            typedef typename Traits::Digraph Digraph;
+            typedef typename Traits::CapacityMap CapacityMap;
+            typedef typename Traits::Value Value;
+            typedef typename Traits::FlowMap FlowMap;
+            typedef typename Traits::Tolerance Tolerance;
+            typedef typename Traits::Elevator Elevator;
+        private:
+            TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+        public:
+            Preflow_HL(const Digraph& digraph, const CapacityMap& capacity,
+                Node source, Node target) : Preflow_Base<GR, CAP, TR>(digraph, capacity, source, target) {}
+            void pushRelabel(bool limit_max_level) {
+                Node current_discharge_node;
+                while (this->_elevator->get_node_with_highest_label(current_discharge_node, limit_max_level)) {
+                    this->discharge(current_discharge_node);
+                }
+            }
+
+    };
 }
