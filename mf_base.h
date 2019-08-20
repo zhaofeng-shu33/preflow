@@ -6,6 +6,7 @@
 #endif
 #include "relabel_to_front_elevator.h"
 #include "fifo_elevator.h"
+#include "highest_label_elevator.h"
 namespace lemon{
 
     template <typename GR, typename CAP>

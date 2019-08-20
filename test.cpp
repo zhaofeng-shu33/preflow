@@ -270,7 +270,7 @@ TEST(Preflow_Relabel, Interrupt) {
 }
 #endif
 
-TEST(FIFOElevator, GetFrontFirstPhase) {
+TEST(FIFOElevator, GetFrontBasic) {
 	typedef ListDigraph::Digraph Digraph;
 	typedef Digraph::Node Item;
 	Digraph g;
@@ -380,4 +380,26 @@ TEST(Preflow_FIFO, Official) {
 		if (g.id(n) != 0 && g.id(n) != 7)
 			EXPECT_EQ(pf.minCut(n), pf_fifo.minCut(n));
 	}
+}
+
+TEST(HLElevator, GetHighestBasic) {
+    typedef ListDigraph::Digraph Digraph;
+    typedef Digraph::Node Item;
+    Digraph g;
+    Item n1 = g.addNode();
+    Item n2 = g.addNode();
+    HLElevator<Digraph, Item> hl(g, 2);
+    hl.initNewLevel();
+    hl.initAddItem(n2);
+    hl.activate(n1);
+    hl.activate(n2);
+    Item n3;
+    bool get_result = hl.get_node_with_highest_label(n3);
+    EXPECT_TRUE(get_result);
+    EXPECT_EQ(g.id(n3), g.id(n2));
+    get_result = hl.get_node_with_highest_label(n3);
+    EXPECT_TRUE(get_result);
+    EXPECT_EQ(g.id(n3), g.id(n1));
+    get_result = hl.get_node_with_highest_label(n3);
+    EXPECT_FALSE(get_result);
 }
