@@ -125,7 +125,7 @@ class ScalableGraph{
         report["relabel"] = time_used;
 
         start_time = std::chrono::system_clock::now();
-        Preflow<Digraph, ArcMap> pf(_graph, aM, _source, _target);
+        Preflow_HL<Digraph, ArcMap> pf(_graph, aM, _source, _target);
         pf.run();
         end_time = std::chrono::system_clock::now();
         dtn = end_time - start_time;
