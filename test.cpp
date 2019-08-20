@@ -403,3 +403,31 @@ TEST(HLElevator, GetHighestBasic) {
     get_result = hl.get_node_with_highest_label(n3);
     EXPECT_FALSE(get_result);
 }
+TEST(HLElevator, GetHighestSecondPhase) {
+    typedef ListDigraph Digraph;
+    typedef ListDigraph::Node Item;
+    typedef HLElevator<Digraph, Item> HLElevator;
+    Digraph g;
+    Item a = g.addNode();
+    Item b = g.addNode();
+    Item c = g.addNode();
+    HLElevator re(g, 3);
+    re.initStart();
+    re.initAddItem(a);
+    re.initNewLevel();
+    re.initAddItem(b);
+    re.initFinish();
+    EXPECT_EQ(re[a], 0);
+    EXPECT_EQ(re[b], 1);
+    re.activate(c);
+    re.activate(a);
+    Item n1;
+    bool get_item = re.get_node_with_highest_label(n1, true);
+    EXPECT_TRUE(get_item);
+    EXPECT_EQ(g.id(n1), g.id(a));
+    get_item = re.get_node_with_highest_label(n1, true);
+    EXPECT_FALSE(get_item);
+    get_item = re.get_node_with_highest_label(n1, false);
+    EXPECT_TRUE(get_item);
+    EXPECT_EQ(g.id(n1), g.id(c));
+}
