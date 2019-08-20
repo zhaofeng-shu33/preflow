@@ -77,7 +77,6 @@ namespace lemon {
                 return false;
             item = item_list->front();
             item_list->pop_front();
-            (*hal)--;
             return true;
         }
     private:
