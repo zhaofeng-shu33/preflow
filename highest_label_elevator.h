@@ -66,12 +66,12 @@ namespace lemon {
                 hal = &highest_active_level;
             if (*hal < 0)
                 return false;
-            std::list<Item>& item_list = hl_list[*hal];
-            while (item_list.size() == 0 && *hal >= 0 ) {
-                (*hal)--;
+            while (*hal >= 0 ) {
                 item_list = hl_list[*hal];
+                if(item_list.size() > 0)
+                    break;
+                (*hal)--;                
             }
-
             if (*hal < 0)
                 return false;
             item = item_list.front();
