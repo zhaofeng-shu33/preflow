@@ -472,3 +472,29 @@ TEST(Preflow_HL, RUN) {
 		EXPECT_EQ(pf.minCut(n), pf_hl.minCut(n));
 	}
 }
+TEST(Preflow_HL, Official) {
+	typedef ListDigraph Digraph;
+	typedef int T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	// use official directed graph to test
+	Digraph g;
+	ArcMap cap(g);
+	Node s, t;
+	digraphReader(g, "test.lgf")
+		.arcMap("capacity", cap)
+		.node("source", s)
+		.node("target", t)
+		.run();
+	Preflow_HL<Digraph, ArcMap> pf_hl(g, cap, s, t);
+	Preflow<Digraph, ArcMap> pf(g, cap, s, t);
+	pf.run();
+	pf_hl.init();
+	pf_hl.startFirstPhase();
+	EXPECT_EQ(pf_hl.flowValue(), pf.flowValue());
+	pf_hl.startSecondPhase();
+	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+		if (g.id(n) != 0 && g.id(n) != 7)
+			EXPECT_EQ(pf.minCut(n), pf_hl.minCut(n));
+	}
+}
