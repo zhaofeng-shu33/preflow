@@ -116,7 +116,7 @@ namespace lemon{
 #ifdef INTERRUPT
 				boost::this_thread::interruption_point();
 #endif
-                if(!_elevator->active(v) && v != _target){
+                if(!_elevator->active(v) && v != _target && v != _source){
                     _elevator->activate(v);
                 }
                 Value rem = (*_capacity)[e] - (*_flow)[e];
@@ -139,7 +139,7 @@ namespace lemon{
 #ifdef INTERRUPT
 				boost::this_thread::interruption_point();
 #endif
-                if(!_elevator->active(v) && v != _source){
+                if(!_elevator->active(v) && v != _source && v != _target){
                     _elevator->activate(v);
                 }
                 Value rem = (*_flow)[e];
