@@ -1,0 +1,3 @@
+[submodule "InterruptibleThread"]
+	path = InterruptibleThread
+	url = https://github.com/zhaofeng-shu33/InterruptibleThread.git

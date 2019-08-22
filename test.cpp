@@ -255,7 +255,7 @@ void test_thread_interrupt(bool& is_interrupted) {
 	try {
 		pf_relabel.run();
 	}
-	catch (boost::thread_interrupted&) {
+	catch (InterruptibleThread::thread_interrupted&) {
 		is_interrupted = true;
 		return;
 	}
@@ -263,7 +263,7 @@ void test_thread_interrupt(bool& is_interrupted) {
 }
 TEST(Preflow_Relabel, Interrupt) {
 	bool is_interrupted;
-	boost::thread t(test_thread_interrupt, std::ref(is_interrupted));
+    InterruptibleThread::thread t(test_thread_interrupt, std::ref(is_interrupted));
 	t.interrupt();
 	t.join();
 	EXPECT_TRUE(is_interrupted);

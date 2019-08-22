@@ -2,7 +2,7 @@
 #include <lemon/core.h>
 #include <lemon/tolerance.h>
 #ifdef INTERRUPT
-#include <boost/thread.hpp>
+#include "InterruptibleThread/InterruptibleThread.h"
 #endif
 #include "relabel_to_front_elevator.h"
 #include "fifo_elevator.h"
@@ -114,7 +114,7 @@ namespace lemon{
             // push flow from Node u to Node v
             inline void push(const Node& u, const Node& v, const Arc& e) {
 #ifdef INTERRUPT
-				boost::this_thread::interruption_point();
+                InterruptibleThread::interruption_point();
 #endif
                 if(!_elevator->active(v) && v != _target && v != _source){
                     _elevator->activate(v);
@@ -137,7 +137,7 @@ namespace lemon{
             // push flow back from Node u to Node v
             inline void push_back(const Node& u, const Node& v, const Arc& e) {
 #ifdef INTERRUPT
-				boost::this_thread::interruption_point();
+                InterruptibleThread::interruption_point();
 #endif
                 if(!_elevator->active(v) && v != _source && v != _target){
                     _elevator->activate(v);
