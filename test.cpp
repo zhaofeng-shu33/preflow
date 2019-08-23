@@ -263,7 +263,7 @@ void test_thread_interrupt(bool& is_interrupted) {
 }
 TEST(Preflow_Relabel, Interrupt) {
 	bool is_interrupted;
-    InterruptibleThread::thread t(test_thread_interrupt, std::ref(is_interrupted));
+    InterruptibleThread::thread t(&test_thread_interrupt, std::ref(is_interrupted));
 	t.interrupt();
 	t.join();
 	EXPECT_TRUE(is_interrupted);
