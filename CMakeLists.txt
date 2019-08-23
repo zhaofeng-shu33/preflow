@@ -12,7 +12,7 @@ if("${CMAKE_PROJECT_NAME}" STREQUAL "" OR "${CMAKE_PROJECT_NAME}" STREQUAL "pref
   project(preflow LANGUAGES CXX)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 option(ENABLE_TESTING "Enable testing" OFF)
 option(USE_INTERRUPT "Enable interrupting" ON)
 option(USE_BOOST_OPTION "Use Boost Options" ON)
