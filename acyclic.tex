@@ -53,7 +53,7 @@
 Consider an acyclic graph with two special nodes $s, t$. Node $s$ has only out-going arc while node $t$ has only in-coming arc.
 For an acyclic graph, we can make the topological order of each element such that the first is $s$ and the last is $t$.
 
-Based on this topological order, we have a fast maximum flow algorithm based on preflow push. (No label is required since we already have the order)
+Based on this topological order, we have a fast maximum flow algorithm as shown below:
 \begin{algorithm}
 \caption{maxifum flow for acyclic graph}\label{alg:aic}
 	\begin{algorithmic}[1]
@@ -71,7 +71,7 @@ Based on this topological order, we have a fast maximum flow algorithm based on 
            
 	\end{algorithmic}
 \end{algorithm}
-\section{Correctness of algorithm}
+\section{Correctness of Algorithm \ref{alg:aic}}
 Algorithm \ref{alg:aic} is spitted into two phases. In the first stage, a maximal preflow is computed. In the second stage, we push back the extra excess and get a maximum flow.  
 First we show the proposition that a maximal preflow $f$ is computed at the end of first stage.
 
@@ -97,7 +97,7 @@ The proof relies on the property of topological structure, which only acylic gra
 To show that the second phase of Algorithm \ref{alg:aic} returns the maximum flow, notice that the flow value $\sum_{a_t = t} f[a]$ does not change in the second phase. Therefore, if the second phase produces a valid flow, it is the maximum flow since its flow value is maximal in the first phase among all preflows.
 
 To show that after the second phase, the preflow becomes a valid flow, we only need to show that the excess at each node decreases to zero. This also relies on the topological structure. Suppose the excess of node $i$ becomes zero during second phase. Then for the remaining processing procedure $j<i$, we can not return any flow to node $i$ because we are only allowed to push back the flow ( push to node with index less than $j$).  At node $i$, we have $ \sum_{i=1}^r c[a_i] \geq \sum_{i=1}^r f[a_i] + e[i]$. Therefore, the push back operation can indeed make the excess decreases to zero. 
-\section{Complexity of algorithm}
+\section{Time Complexity of Algorithm \ref{alg:aic}}
 We assume the input graph has already been topologically sorted. Even if it is not sorted, we can sort the graph in the same time complexity $O(\abs{V} + \abs{E})$, which is shown below.
 
 Both the first and second phase will iterate the edge of the graph by once. The time complexity of the algorithm is donimated by $O(|E|)$.  If $\abs{E} < \abs{V}$, the iteration from $j=1$ to $n$ is also necessary ( to check whether node $j$ has any connected edges). Therefore, the time complexity of Algorithm \ref{alg:aic} is $O(\abs{V} + \abs{E}) $
