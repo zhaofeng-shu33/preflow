@@ -5,6 +5,7 @@
 #include <lemon/list_graph.h>
 #include <lemon/preflow.h>
 #include "mf_base.h"
+#include "preflow_acyclic.h"
 using namespace lemon;
 TEST(Preflow_Relabel, Constructor) {
     typedef concepts::Digraph Digraph;
@@ -528,4 +529,59 @@ TEST(Preflow_HL, Official) {
 		if (g.id(n) != 0 && g.id(n) != 7)
 			EXPECT_EQ(pf.minCut(n), pf_hl.minCut(n));
 	}
+}
+TEST(Preflow_AC, Basic) {
+    typedef ListDigraph Digraph;
+    typedef int T;
+    typedef Digraph::ArcMap<T> ArcMap;
+    typedef ListDigraph::Node Node;
+    typedef ListDigraph::Arc Arc;
+    Digraph g;
+    Node s = g.addNode();
+    Node n1 = g.addNode();
+    Node n2 = g.addNode();
+    Node t = g.addNode();
+    ArcMap aM(g);
+    Arc a1 = g.addArc(s, n1);
+    Arc a2 = g.addArc(n1, n2);
+    Arc a3 = g.addArc(s, n2);
+    Arc a4 = g.addArc(n2, t);
+    aM[a1] = 2;
+    aM[a2] = 1;
+    aM[a3] = 1;
+    aM[a4] = 2;
+    Preflow_Acyclic<Digraph, ArcMap> pf(g, aM, s, t);
+    pf.init();
+    pf.startFirstPhase();
+    EXPECT_EQ(pf.flowValue(), 2);
+    pf.startSecondPhase();
+    EXPECT_TRUE(pf.minCut(s));
+    EXPECT_TRUE(pf.minCut(n1));
+    EXPECT_TRUE(pf.minCut(n2));
+    EXPECT_FALSE(pf.minCut(t));
+}
+TEST(Preflow_AC, Advanced) {
+    typedef ListDigraph Digraph;
+    typedef double T;
+    typedef Digraph::ArcMap<T> ArcMap;
+    typedef ListDigraph::Node Node;
+    // use official directed graph to test
+    Digraph g;
+    ArcMap cap(g);
+    Node s, t;
+    digraphReader(g, "gaussian-8-0.60.lgf")
+        .arcMap("capacity", cap)
+        .node("source", s)
+        .node("target", t)
+        .run();
+    Preflow_Acyclic<Digraph, ArcMap> pf_ac(g, cap, s, t);
+    Preflow_FIFO<Digraph, ArcMap> pf(g, cap, s, t);
+    pf.run();
+    pf_ac.init();
+    pf_ac.startFirstPhase();
+    EXPECT_EQ(pf_ac.flowValue(), pf.flowValue());
+    pf_ac.startSecondPhase();
+    for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+        EXPECT_EQ(pf.minCut(n), pf_ac.minCut(n));
+    }
 }
