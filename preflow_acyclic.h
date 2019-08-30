@@ -241,7 +241,7 @@ namespace lemon {
                     int n_id = _graph.id(_graph.source(e));
                     node_id_to_sink_arc_id[n_id] = _graph.id(e);
                 }
-                for (int i = 1; i < _node_num; i++) {
+                for (int i = 1; i < _node_num - 1; i++) {
                     Node n = _graph.nodeFromId(i);
                     std::map<int, int>::iterator mit = node_id_to_sink_arc_id.find(i);
                     if (mit != node_id_to_sink_arc_id.end()) {
@@ -267,7 +267,7 @@ namespace lemon {
                     int n_id = _graph.id(_graph.target(e));
                     node_id_to_source_arc_id[n_id] = _graph.id(e);
                 }
-                for (int i = _node_num - 1; i > 0; i--) {
+                for (int i = _node_num - 2; i > 0; i--) {
                     Node n = _graph.nodeFromId(i);
                     std::map<int, int>::iterator mit = node_id_to_source_arc_id.find(i);
                     if (mit != node_id_to_source_arc_id.end()) {
@@ -277,9 +277,9 @@ namespace lemon {
                     }
                     if (!_tolerance.positive((*_excess)[n]))
                         continue;
-                    for (OutArcIt e(_graph, n); e != INVALID; ++e) {
-                        Node t = _graph.target(e);
-                        push_back(n, t, e);
+                    for (InArcIt e(_graph, n); e != INVALID; ++e) {
+                        Node s = _graph.source(e);
+                        push_back(n, s, e);
                         if (!_tolerance.positive((*_excess)[n]))
                             break;
                     }
