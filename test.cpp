@@ -95,6 +95,37 @@ TEST(Preflow_Relabel, Run){
     }
 }
 
+TEST(Preflow_Relabel, Infinity) {
+    typedef ListDigraph Digraph;
+    typedef double T;
+    typedef Digraph::ArcMap<T> ArcMap;
+    typedef ListDigraph::Node Node;
+    typedef ListDigraph::Arc Arc;
+    Digraph g;
+    Node s = g.addNode();
+    Node n1 = g.addNode();
+    Node n2 = g.addNode();
+    Node t = g.addNode();
+    ArcMap aM(g);
+    Arc a1 = g.addArc(s, n1);
+    Arc a2 = g.addArc(s, n2);
+    Arc a3 = g.addArc(n1, n2);
+    Arc a4 = g.addArc(n2, t);
+    aM[a1] = 1;
+    aM[a2] = 1;
+    aM[a3] = 1;
+    aM[a4] = INFINITY;
+    Preflow_Relabel<Digraph, ArcMap> pf_relabel(g, aM, s, t);
+    pf_relabel.init();
+    pf_relabel.startFirstPhase();
+    EXPECT_DOUBLE_EQ(pf_relabel.flowValue(), 2);
+    pf_relabel.startSecondPhase();
+    EXPECT_TRUE(pf_relabel.minCut(s));
+    EXPECT_TRUE(pf_relabel.minCut(n1));
+    EXPECT_FALSE(pf_relabel.minCut(n2));
+    EXPECT_FALSE(pf_relabel.minCut(t));
+}
+
 TEST(Preflow_Relabel, MinSourceSide) {
 	typedef ListDigraph Digraph;
 	typedef int T;

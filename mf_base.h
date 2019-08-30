@@ -228,7 +228,6 @@ namespace lemon{
 				return _elevator;
 			}
             // after capacity change, reinit the class, used by parametric maximal flow
-            // only second phase is needed to run
             void reinit() {
                 // update _flow, _excess connected with sink_node
                 for (InArcIt e(_graph, _target); e != INVALID; ++e) {
