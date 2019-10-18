@@ -16,8 +16,9 @@ def write_lgf(digraph):
     # convert networkx digraph to lgf string
     Ls = []
     for i in digraph.nodes:
-        Ls.append(str(i))
+        Ls.append(int(i))
     Ls.sort()
+    Ls = [str(i) for i in Ls]
     Ls = ['@nodes', 'label'] + Ls
     if(type(Ls[0]) is not str):
         for i in range(len(Ls)):
