@@ -18,6 +18,7 @@ def write_lgf(digraph):
     for i in digraph.nodes:
         Ls.append(int(i))
     Ls.sort()
+    Ls = [str(i) for i in Ls]
     Ls = ['@nodes', 'label'] + Ls
     if(type(Ls[2]) is not str):
         for i in range(len(Ls)):
