@@ -619,7 +619,7 @@ namespace lemon{
 
 	template <typename GR,
 		typename CAP = typename GR::template ArcMap<int>,
-		typename TR = Preflow_FIFODefaultTraits<GR, CAP> >
+		typename TR = Preflow_ParallelDefaultTraits<GR, CAP> >
 		class Preflow_Parallel : public Preflow_Base<GR, CAP, TR> {
 		public:
 			typedef TR Traits;
@@ -636,9 +636,8 @@ namespace lemon{
 				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
 			void pushRelabel(bool limit_max_level) {
 				// Todo: parallel this for loop using openmp
-				for (int i = 0; i < this->_elevator->active_nodes.size(); i++) {
-					int node_id = this->_elevator->active_nodes[i];
-					this->discharge(Node(node_id));
+				for (int i = 0; i < this->_elevator->get_active_count(); i++) {
+					this->discharge(this->_elevator->get_node(i));
 				}
 			}
             inline void startFirstPhase() {
