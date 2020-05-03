@@ -635,7 +635,15 @@ namespace lemon{
 			Preflow_Parallel(const Digraph& digraph, const CapacityMap& capacity,
 				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
 			void pushRelabel(bool limit_max_level) {
+				// Todo: parallel this for loop using openmp
+				for (int i = 0; i < this->_elevator->active_nodes.size(); i++) {
+					int node_id = this->_elevator->active_nodes[i];
+					this->discharge(Node(node_id));
+				}
 			}
-
+            inline void startFirstPhase() {
+				this->_elevator->concatenate_active_sets();
+                pushRelabel(true);
+            }
 	};	
 }

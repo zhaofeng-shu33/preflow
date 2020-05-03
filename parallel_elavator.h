@@ -10,12 +10,13 @@ namespace lemon{
     };
     template<class GR, class Item>
     class ParallelElevator{
-        //parallel elevator
+        // parallel elevator
 
     public:
         typedef int Value;
         typedef typename std::list<Item>::iterator iterator; 
 		typedef typename GR::NodeIt NodeIt;
+        std::vector<int> active_nodes;
     private:
         typedef typename ItemSetTraits<GR, Item>::
         template Map<int>::Type IntMap;
@@ -25,24 +26,29 @@ namespace lemon{
         const GR &_graph;
         int _max_level;
         IntMap _level;
-        std::vector<VertexExtraInfo> _vertices;
-        std::vector<int> _active;
-        int _active_cnt;
+        std::vector<VertexExtraInfo> _vertices;        
+        std::unique_ptr<std::vector<int>> _active_local; // thread local structure
+        int _thread_cnt;
     public:
-		ParallelElevator(const GR& graph, int max_level)
+		ParallelElevator(const GR& graph, int max_level, int thread_count = 1)
         : _graph(graph), _max_level(max_level),
-          _level(graph), _init_level(0){
+          _level(graph), _init_level(0), _thread_cnt(thread_count){
+              _vertices.resize(countNodes(graph));
+              _active_local = std::make_unique<std::vector<int>>(thread_count);
 		}
         
 		ParallelElevator(const ParallelElevator& ele) {
 
 		}
-
-        void activate(Item i) {
+        void concatenate_active_sets() {
+            active_nodes.clear();
+            for(int i = 0; i < _thread_cnt; i++) {
+                active_nodes.insert(active_nodes.end(), _active_local[i].begin(), _active_local[i].end());
+                _active_local[i].clear();
+            }
         }
-        
-        void get_active_cnt() {
-            return _active_cnt;
+        void activate(Item i, int thread_id) {
+            _active_local[thread_id].push_back(i.id());
         }
 
         inline void deactivate(Item i) {
