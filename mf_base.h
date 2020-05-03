@@ -7,6 +7,8 @@
 #include "relabel_to_front_elevator.h"
 #include "fifo_elevator.h"
 #include "highest_label_elevator.h"
+#include "parallel_elavator.h"
+
 namespace lemon{
 
     template <typename GR, typename CAP>
@@ -584,7 +586,7 @@ namespace lemon{
 				Node current_discharge_node;
 				while (this->_elevator->getFront(current_discharge_node, limit_max_level)) {
 					this->discharge(current_discharge_node);
-				}				
+				}		
 			}
 
 	};
@@ -614,4 +616,26 @@ namespace lemon{
             }
 
     };
+
+	template <typename GR,
+		typename CAP = typename GR::template ArcMap<int>,
+		typename TR = Preflow_FIFODefaultTraits<GR, CAP> >
+		class Preflow_Parallel : public Preflow_Base<GR, CAP, TR> {
+		public:
+			typedef TR Traits;
+			typedef typename Traits::Digraph Digraph;
+			typedef typename Traits::CapacityMap CapacityMap;
+			typedef typename Traits::Value Value;
+			typedef typename Traits::FlowMap FlowMap;
+			typedef typename Traits::Tolerance Tolerance;
+			typedef typename Traits::Elevator Elevator;
+		private:
+			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+		public:
+			Preflow_Parallel(const Digraph& digraph, const CapacityMap& capacity,
+				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
+			void pushRelabel(bool limit_max_level) {
+			}
+
+	};	
 }
