@@ -644,5 +644,9 @@ namespace lemon{
 				this->_elevator->concatenate_active_sets();
                 pushRelabel(true);
             }
-	};	
+		private:
+			void discharge(const Node& n) {
+				
+			}
+	};
 }
