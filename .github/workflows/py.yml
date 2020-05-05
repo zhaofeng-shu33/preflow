@@ -19,4 +19,4 @@ jobs:
       - name: compile main program
         run: g++ -std=c++14 main.cpp -llemon -lboost_program_options -o build/lgf_compute
       - name: run executable test
-      - run: cp test.py build/ && cd build && python test.py
+        run: cp test.py build/ && cd build && python test.py
