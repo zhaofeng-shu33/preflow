@@ -14,7 +14,7 @@ def get_result(method):
 def check_result(string):
     flow_value = string.split(':')[-1].rstrip('\n').lstrip(' ')
     if int(flow_value) != 96:
-        raise ValueError(flow_line)
+        raise ValueError(flow_value)
  
 if __name__ == '__main__':
     method_list = ['o_hl', 'rtf', 'hl', 'fifo']
