@@ -70,26 +70,25 @@ namespace lemon{
             typedef typename Traits::FlowMap FlowMap;
             typedef typename Traits::Tolerance Tolerance; 
             typedef typename Traits::Elevator Elevator;
+            typedef typename Digraph::template NodeMap<Value> ExcessMap;
         private:  
             TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
             
-            const Digraph& _graph;
-            const CapacityMap* _capacity;
             
             int _node_num;            
-            
-            FlowMap* _flow;                        
-            
-            typedef typename Digraph::template NodeMap<Value> ExcessMap;
-            ExcessMap* _excess;
+         
 			bool is_local_elevator = true;
-            Tolerance _tolerance;
             //! minimum source side cut
             BoolNodeMap _source_side; 
 			//! minimum sink side cut
 			BoolNodeMap _sink_side;
 
 		protected:
+            const Digraph& _graph;
+            const CapacityMap* _capacity;
+            ExcessMap* _excess;
+            FlowMap* _flow;
+            Tolerance _tolerance;
 			Elevator* _elevator;
 			Node _source, _target;
 
@@ -629,6 +628,7 @@ namespace lemon{
 			typedef typename Traits::FlowMap FlowMap;
 			typedef typename Traits::Tolerance Tolerance;
 			typedef typename Traits::Elevator Elevator;
+            typedef typename Digraph::template NodeMap<Value> ExcessMap;
 		private:
 			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
 		public:
@@ -645,8 +645,18 @@ namespace lemon{
                 pushRelabel(true);
             }
 		private:
+			inline void push_back(const Node& u, const Node& v, const Arc& e) {				
+			}
+			inline void push(const Node& u, const Node& v, const Arc& e) {
+			}
 			void discharge(const Node& n) {
 				// discharge only, no relabel
+				const Digraph& _graph = this->_graph;
+				Elevator*& _elevator = this->_elevator;
+				ExcessMap*& _excess = this->_excess;
+				Tolerance& _tolerance = this->_tolerance;
+				FlowMap*& _flow = this->_flow;
+				const CapacityMap*& _capacity = this->_capacity;
 				for(OutArcIt e(_graph, n); e != INVALID; ++e){
 					Node v = _graph.target(e);
 					if (_tolerance.positive((*_capacity)[e] - (*_flow)[e])){
@@ -658,7 +668,7 @@ namespace lemon{
 					}
 				}
 				if ((*_excess)[n] == 0)
-					break;
+					return;
 				for(InArcIt e(_graph, n); e != INVALID; ++e) {
 					Node v = _graph.source(e);
 
@@ -670,8 +680,6 @@ namespace lemon{
 							break;                            
 					}
 				}
-				if ((*_excess)[n] == 0)
-					break;
 			}
 	};
 }
