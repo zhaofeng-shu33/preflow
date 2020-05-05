@@ -1,16 +1,30 @@
-'''This program converts gml format to LGF graph format(LEMON C++)
+'''This program converts Dimacs or gml format to LGF graph format(LEMON C++)
 currently only digraph convertion is supported.
 '''
 
 import argparse
 import networkx as nx
 import os
-def convert(filename):
-    digraph = toNetworkX_fromFile(filename)
-    str = write_lgf(digraph)
-    with open(filename.replace('gml','lgf'),'w') as f:
-        f.write(str)
+def convert(filename, filetype='GML'):
+    digraph = toNetworkX_fromFile(filename, filetype)
+    st = write_lgf(digraph)
+    with open(filename.split('.')[0] + '.lgf','w') as f:
+        f.write(st)
 
+def readDimacs(filename):    
+    g = nx.DiGraph()
+    with open(filename) as f:
+        for line in f.readlines():
+            if line[0] == 'n':
+                _, node_id, node_type = line.split()
+                if node_type == 's':
+                    s = node_id
+                elif node_type == 't':
+                    t = node_id
+            elif line[0] == 'a':
+                _, _s, _t, _cap = line.split()
+                g.add_edge(_s, _t, weight=int(_cap))
+    return (g, s, t)
 
 def write_lgf(digraph):
     # convert networkx digraph to lgf string
@@ -35,15 +49,16 @@ def write_lgf(digraph):
         edge_cnt += 1
     return '\n'.join(Ls)
     
-def toNetworkX_fromFile(filename):
-    digraph = nx.gml.read_gml(filename)
+def toNetworkX_fromFile(filename, filetype):
+    if filetype == 'GML':
+        digraph = nx.gml.read_gml(filename)
+    elif filetype == 'DIMAC':
+        digraph, s, t = readDimacs(filename)
     return digraph
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('gml to lgf')
-    parser.add_argument('filename', help='GML file to be converted')
-    parser.add_argument('--debug', help='enter debug mode', default=False, type=bool, nargs='?', const=True)
+    parser.add_argument('filename', help='file to be converted')
+    parser.add_argument('--type', choices=['GML', 'DIMAC'], default='GML')
     args = parser.parse_args()
-    if(args.debug):
-        pdb.set_trace()
-    convert(os.path.join('build', args.filename))
+    convert(os.path.join('build', args.filename), args.type)

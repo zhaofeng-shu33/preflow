@@ -646,7 +646,32 @@ namespace lemon{
             }
 		private:
 			void discharge(const Node& n) {
-				
+				// discharge only, no relabel
+				for(OutArcIt e(_graph, n); e != INVALID; ++e){
+					Node v = _graph.target(e);
+					if (_tolerance.positive((*_capacity)[e] - (*_flow)[e])){
+						if((*_elevator)[n] == (*_elevator)[v] + 1){
+							push(n, v, e);
+						}
+						if ((*_excess)[n] == 0)
+							break;
+					}
+				}
+				if ((*_excess)[n] == 0)
+					break;
+				for(InArcIt e(_graph, n); e != INVALID; ++e) {
+					Node v = _graph.source(e);
+
+					if (_tolerance.positive((*_flow)[e])){
+						if((*_elevator)[n] == (*_elevator)[v] + 1) {
+							push_back(n, v, e); // push back the flow
+						}
+						if ((*_excess)[n] == 0)
+							break;                            
+					}
+				}
+				if ((*_excess)[n] == 0)
+					break;
 			}
 	};
 }
