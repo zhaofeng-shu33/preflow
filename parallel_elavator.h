@@ -2,18 +2,18 @@
 #include <atomic>
 
 namespace lemon{
-    struct VertexExtraInfo
-    {
-        std::atomic<int> new_excess;
-        int new_level;
-        std::atomic_flag discovered = ATOMIC_FLAG_INIT; // avoid duplicate add
-    };
-    template<class GR, class Item>
+    template<class GR, class Item, class Value = int>
     class ParallelElevator{
         // parallel elevator
+    private:
+        struct VertexExtraInfo
+        {
+            std::atomic<Value> new_excess;
+            int new_level;
+            std::atomic_flag discovered = ATOMIC_FLAG_INIT; // avoid duplicate add
+        };
 
     public:
-        typedef int Value;
         typedef typename std::list<Item>::iterator iterator; 
 		typedef typename GR::NodeIt NodeIt;
         typedef typename GR::Node Node;
@@ -64,8 +64,13 @@ namespace lemon{
         inline void deactivate(Item i) {
         }
         
-        inline bool active(Item i) const { return false; }
-        
+        inline bool active(Item i) const {
+            throw std::logic_error("not used");
+            return false;
+        }
+        inline void add_new_excess(Item i, Value excess_value) {
+
+        }
         int operator[](Item i) const { return _level[i]; }
 
         void lift(Item i, int new_level) {
@@ -112,7 +117,7 @@ namespace lemon{
 		static FlowMap* createFlowMap(const Digraph& digraph) {
 			return new FlowMap(digraph);
 		}
-		typedef ParallelElevator<Digraph, typename Digraph::Node> Elevator;
+		typedef ParallelElevator<Digraph, typename Digraph::Node, Value> Elevator;
 		static Elevator* createElevator(const Digraph& digraph, int max_level) {
 			return new Elevator(digraph, max_level);
 		}

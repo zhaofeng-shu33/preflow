@@ -648,6 +648,25 @@ namespace lemon{
 			inline void push_back(const Node& u, const Node& v, const Arc& e) {				
 			}
 			inline void push(const Node& u, const Node& v, const Arc& e) {
+				ExcessMap*& _excess = this->_excess;
+				Tolerance& _tolerance = this->_tolerance;
+				FlowMap*& _flow = this->_flow;
+				const CapacityMap*& _capacity = this->_capacity;
+
+                Value rem = (*_capacity)[e] - (*_flow)[e];
+                Value excess = (*_excess)[u];
+                if(_tolerance.less(rem, excess)){ // rem + epsilon < excess
+					// saturating push
+					(*_excess)[u] -= rem;
+					(*_excess)[v] += rem;
+					_flow->set(e, (*_capacity)[e]);
+                }
+                else {
+					// non-saturating push
+					(*_excess)[u] = 0;
+					(*_excess)[v] += excess;
+					_flow->set(e, (*_flow)[e] + excess);
+                }
 			}
 			void discharge(const Node& n) {
 				// discharge only, no relabel
