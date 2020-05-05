@@ -1,14 +1,19 @@
 '''This program converts Dimacs or gml format to LGF graph format(LEMON C++)
 currently only digraph convertion is supported.
 '''
-
-import argparse
-import networkx as nx
 import os
+import argparse
+
+import networkx as nx
+
 def convert(filename, filetype='GML'):
-    digraph = toNetworkX_fromFile(filename, filetype)
+    digraph, others = toNetworkX_fromFile(filename, filetype)
     st = write_lgf(digraph)
-    with open(filename.split('.')[0] + '.lgf','w') as f:
+    if others.get('s') and others.get('t'):
+        st += '\n@attributes\n'
+        st += 'source ' + others['s'] + '\n'
+        st += 'target ' + others['t'] + '\n'
+    with open(filename.split('.')[0] + '.lgf', 'w') as f:
         f.write(st)
 
 def readDimacs(filename):    
@@ -52,10 +57,12 @@ def write_lgf(digraph):
 def toNetworkX_fromFile(filename, filetype):
     if filetype == 'GML':
         digraph = nx.gml.read_gml(filename)
+        others = {}
     elif filetype == 'DIMAC':
         digraph, s, t = readDimacs(filename)
-    return digraph
-    
+        others = {'s' : s, 't' : t}
+    return (digraph, others)
+ 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('gml to lgf')
     parser.add_argument('filename', help='file to be converted')

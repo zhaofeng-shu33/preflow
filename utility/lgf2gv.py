@@ -3,7 +3,6 @@ currently only digraph convertion is supported.
 '''
 import argparse
 import networkx as nx
-import pdb
 
 def get_readline_generator(str):
     str_inner = str
@@ -59,8 +58,5 @@ def convert(filename):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('lgf to gv')
     parser.add_argument('filename', help='LGF file to be converted')
-    parser.add_argument('--debug', help='enter debug mode', default=False, type=bool, nargs='?', const=True)
     args = parser.parse_args()
-    if(args.debug):
-        pdb.set_trace()
     convert(args.filename)
