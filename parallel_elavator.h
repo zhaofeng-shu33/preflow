@@ -26,7 +26,7 @@ namespace lemon{
         const GR &_graph;
         int _max_level;
         IntMap _level;
-        std::vector<VertexExtraInfo> _vertices;        
+        std::unique_ptr<VertexExtraInfo[]> _vertices;        
         std::unique_ptr<std::vector<int>[]> _active_local; // thread local structure
         int _thread_cnt;
         std::vector<int> active_nodes;
@@ -35,7 +35,7 @@ namespace lemon{
 		ParallelElevator(const GR& graph, int max_level, int thread_count = 1)
         : _graph(graph), _max_level(max_level),
           _level(graph), _init_level(0), _thread_cnt(thread_count) {
-              _vertices.resize(countNodes(graph));
+              _vertices = std::make_unique<VertexExtraInfo[]>(countNodes(graph));
               _active_local = std::make_unique<std::vector<int>[]>(thread_count);
 		}
 

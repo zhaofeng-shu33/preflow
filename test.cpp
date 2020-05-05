@@ -531,6 +531,17 @@ TEST(Preflow_HL, Official) {
 	}
 }
 
+TEST(ParaElevator, ConcatenateActiveSet) {
+	typedef ListDigraph Digraph;
+	typedef ListDigraph::Node Item;
+	typedef ParallelElevator<Digraph, Item> ParaElevator;
+	Digraph g;
+	Item n = g.addNode();
+	ParaElevator pe(g, 2);
+	pe.activate(n);
+	pe.concatenate_active_sets();
+}
+
 TEST(Preflow_Parallel, Construction) {
 	typedef ListDigraph Digraph;
 	typedef int T;
