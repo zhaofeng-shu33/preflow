@@ -11,7 +11,7 @@ int main(int argc, const char *argv[]){
 	desc.add_options()
 		("help,h", "Show this help screen")
 		("filename", boost::program_options::value<std::string>(), "lgf file name")
-		("use_original", boost::program_options::value<bool>()->implicit_value(true)->default_value(false), "whether to use the original highest label implementation")
+		("method", boost::program_options::value<std::string>()->default_value("hl"), "maxflow implementation: rtf, hl, fifo, o_hl")
 		("print_cut", boost::program_options::value<bool>()->implicit_value(true)->default_value(false), "whether to print the min cut set of source side");
 
 	boost::program_options::command_line_parser parser{ argc, argv };
@@ -31,10 +31,10 @@ int main(int argc, const char *argv[]){
 		return 0;
 	}
 	std::string filename;
-	bool use_original_algorithm;
+	std::string method_short_name;
 	bool print_cut;
 	try{
-		use_original_algorithm = vm["use_original"].as<bool>();
+		method_short_name = vm["method"].as<std::string>();
 		print_cut = vm["print_cut"].as<bool>();
 		filename = vm["filename"].as<std::string>();
 	}
@@ -61,8 +61,8 @@ int main(int argc, const char *argv[]){
 	std::string method_name;
 	std::stringstream cut_set;
 	cut_set << '{';
-	if (use_original_algorithm) {
-		lemon::Preflow<Digraph, ArcMap> alg(digraph, cap, src, trg);
+	if (method_short_name == "hl") {
+		lemon::Preflow_HL<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "highest label";
 		alg.run();
 		max_flow_value = alg.flowValue();
@@ -70,10 +70,27 @@ int main(int argc, const char *argv[]){
 			if (alg.minCut(n))
 				cut_set << digraph.id(n) << ',';
 		}
-	}
-	else {
+	} else if (method_short_name == "rtf") {
 		lemon::Preflow_Relabel<Digraph, ArcMap> alg(digraph, cap, src, trg);
-		method_name = "relabel";
+		method_name = "relabel to front";
+		alg.run();
+		max_flow_value = alg.flowValue();
+		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
+			if (alg.minCut(n))
+				cut_set << digraph.id(n) << ',';
+		}
+	} else if (method_short_name == "fifo") {
+		lemon::Preflow_FIFO<Digraph, ArcMap> alg(digraph, cap, src, trg);
+		method_name = "first in first out";
+		alg.run();
+		max_flow_value = alg.flowValue();
+		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
+			if (alg.minCut(n))
+				cut_set << digraph.id(n) << ',';
+		}
+	} else {
+		lemon::Preflow<Digraph, ArcMap> alg(digraph, cap, src, trg);
+		method_name = "original highest label";
 		alg.run();
 		max_flow_value = alg.flowValue();
 		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
