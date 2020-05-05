@@ -11,7 +11,7 @@ jobs:
       - name: py dev install
         run: pip install -r requirements.txt
       - name: c++ dev install
-        run: apt install liblemon-dev libboost-program-options-dev
+        run: sudo apt install liblemon-dev libboost-program-options-dev
       - name: prepare build env
         run: mkdir -p build && cp test_graph.dimac build/
       - name: run convert
