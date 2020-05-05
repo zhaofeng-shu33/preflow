@@ -178,8 +178,6 @@ namespace lemon{
 								break;
                         }
                     }
-                    if ((*_excess)[n] == 0)
-                        break;
                     for(InArcIt e(_graph, n); e != INVALID; ++e) {
                         Node v = _graph.source(e);
 
@@ -194,8 +192,7 @@ namespace lemon{
 								break;                            
                         }
                     }
-                    if ((*_excess)[n] == 0)
-                        break;
+
 					if (new_level + 1 < 2 * _elevator->maxLevel())
 						relabel(n, new_level);
 					else{
