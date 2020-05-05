@@ -2,15 +2,21 @@ name: convert
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: 3.7
-      - name: dev install
+      - name: py dev install
         run: pip install -r requirements.txt
+      - name: c++ dev install
+        run: apt install liblemon-dev libboost-program-options-dev
       - name: prepare build env
         run: mkdir -p build && cp test_graph.dimac build/
       - name: run convert
         run: python utility/toLGF.py --type DIMAC test_graph.dimac
+      - name: compile main program
+        run: g++ -std=c++14 main.cpp -llemon -lboost_program_options -o build/lgf_compute
+      - name: run executable test
+      - run: cp test.py build/ && cd build && python test.py
