@@ -652,19 +652,20 @@ namespace lemon{
 				Tolerance& _tolerance = this->_tolerance;
 				FlowMap*& _flow = this->_flow;
 				const CapacityMap*& _capacity = this->_capacity;
+				Elevator*& _elevator = this->_elevator;
 
                 Value rem = (*_capacity)[e] - (*_flow)[e];
                 Value excess = (*_excess)[u];
                 if(_tolerance.less(rem, excess)){ // rem + epsilon < excess
 					// saturating push
 					(*_excess)[u] -= rem;
-					(*_excess)[v] += rem;
+					_elevator->add_new_excess(v, rem);
 					_flow->set(e, (*_capacity)[e]);
                 }
                 else {
 					// non-saturating push
 					(*_excess)[u] = 0;
-					(*_excess)[v] += excess;
+					_elevator->add_new_excess(v, excess);
 					_flow->set(e, (*_flow)[e] + excess);
                 }
 			}
