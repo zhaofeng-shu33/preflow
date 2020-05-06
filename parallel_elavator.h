@@ -73,6 +73,9 @@ namespace lemon{
         inline void add_new_excess(Item i, Value excess_value) {
             _vertices[_graph.id(i)].new_excess.fetch_add(excess_value, std::memory_order_relaxed);
         }
+        inline void add_new_level(Item i, int level_value) {
+             _vertices[_graph.id(i)].new_level = level_value;
+        }
         int operator[](Item i) const { return _level[i]; }
 
         void lift(Item i, int new_level) {

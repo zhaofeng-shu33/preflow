@@ -646,6 +646,10 @@ namespace lemon{
                 pushRelabel(true);
             }
 		private:
+            inline void relabel(const Node& n, new_level) {
+	            this->_elevator->add_new_level(n, new_level + 1);
+            }
+
 			inline void push(const Node& u, const Node& v, const Arc& e, int thread_id) {
 				ExcessMap*& _excess = this->_excess;
 				Tolerance& _tolerance = this->_tolerance;
@@ -701,11 +705,16 @@ namespace lemon{
 				Tolerance& _tolerance = this->_tolerance;
 				FlowMap*& _flow = this->_flow;
 				const CapacityMap*& _capacity = this->_capacity;
+
+				int new_level = 2 * _elevator->maxLevel();
 				for(OutArcIt e(_graph, n); e != INVALID; ++e){
 					Node v = _graph.target(e);
 					if (_tolerance.positive((*_capacity)[e] - (*_flow)[e])){
 						if((*_elevator)[n] == (*_elevator)[v] + 1){
 							push(n, v, e, thread_id);
+						}
+						else if (new_level > (*_elevator)[v]) {
+							new_level = (*_elevator)[v];
 						}
 						if ((*_excess)[n] == 0)
 							break;
@@ -720,10 +729,23 @@ namespace lemon{
 						if((*_elevator)[n] == (*_elevator)[v] + 1) {
 							push_back(n, v, e, thread_id); // push back the flow
 						}
+						else if (new_level > (*_elevator)[v]) {
+							new_level = (*_elevator)[v];
+						}
 						if ((*_excess)[n] == 0)
 							break;                            
 					}
-				}				
+				}
+				if ((*_excess)[n] == 0)
+					return;
+				if (new_level + 1 < 2 * _elevator->maxLevel()) {
+					relabel(n, new_level);
+				}
+				else {
+					relabel(n, 2 * _elevator->maxLevel() - 2);
+				}
+				if (_elevator->is_discovered(n) == false))
+					_elevator->activate(n, thread_id);
 			}
 	};
 }
