@@ -637,7 +637,8 @@ namespace lemon{
 			void pushRelabel(bool limit_max_level) {
 				// Todo: parallel this for loop using openmp
 				for (int i = 0; i < this->_elevator->get_active_count(); i++) {
-					this->discharge(this->_elevator->get_node(i));
+					int thread_id = 0;
+					this->discharge(this->_elevator->get_node(i), thread_id);
 				}
 			}
             inline void startFirstPhase() {
@@ -645,9 +646,7 @@ namespace lemon{
                 pushRelabel(true);
             }
 		private:
-			inline void push_back(const Node& u, const Node& v, const Arc& e) {				
-			}
-			inline void push(const Node& u, const Node& v, const Arc& e) {
+			inline void push(const Node& u, const Node& v, const Arc& e, int thread_id) {
 				ExcessMap*& _excess = this->_excess;
 				Tolerance& _tolerance = this->_tolerance;
 				FlowMap*& _flow = this->_flow;
@@ -668,8 +667,33 @@ namespace lemon{
 					_elevator->add_new_excess(v, excess);
 					_flow->set(e, (*_flow)[e] + excess);
                 }
+				if(v != this->_target && v != this->_source &&
+					_elevator->is_discovered(v) == false)
+					_elevator->activate(v, thread_id);
 			}
-			void discharge(const Node& n) {
+            inline void push_back(const Node& u, const Node& v, const Arc& e, int thread_id) {
+				ExcessMap*& _excess = this->_excess;
+				Tolerance& _tolerance = this->_tolerance;
+				FlowMap*& _flow = this->_flow;
+				const CapacityMap*& _capacity = this->_capacity;
+				Elevator*& _elevator = this->_elevator;
+
+                Value rem = (*_flow)[e];
+                Value excess = (*_excess)[u];
+                if(_tolerance.less(rem, excess)){
+                    // saturating push
+                    (*_excess)[u] -= rem;
+                    _elevator->add_new_excess(v, rem);
+                    _flow->set(e, 0);
+                }
+                else {
+                    // no saturating push
+                    (*_excess)[u] = 0;
+                    _elevator->add_new_excess(v, excess);
+                    _flow->set(e, (*_flow)[e] - excess);
+                }                
+            }
+			void discharge(const Node& n, int thread_id) {
 				// discharge only, no relabel
 				const Digraph& _graph = this->_graph;
 				Elevator*& _elevator = this->_elevator;
@@ -681,7 +705,7 @@ namespace lemon{
 					Node v = _graph.target(e);
 					if (_tolerance.positive((*_capacity)[e] - (*_flow)[e])){
 						if((*_elevator)[n] == (*_elevator)[v] + 1){
-							push(n, v, e);
+							push(n, v, e, thread_id);
 						}
 						if ((*_excess)[n] == 0)
 							break;
@@ -694,12 +718,12 @@ namespace lemon{
 
 					if (_tolerance.positive((*_flow)[e])){
 						if((*_elevator)[n] == (*_elevator)[v] + 1) {
-							push_back(n, v, e); // push back the flow
+							push_back(n, v, e, thread_id); // push back the flow
 						}
 						if ((*_excess)[n] == 0)
 							break;                            
 					}
-				}
+				}				
 			}
 	};
 }
