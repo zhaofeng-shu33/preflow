@@ -644,6 +644,14 @@ namespace lemon{
             inline void startFirstPhase() {
 				this->_elevator->concatenate_active_sets();
                 pushRelabel(true);
+
+            }
+            // the second phase calculate the minimal cut set
+            void startSecondPhase(bool getSourceSide = false) {
+				if (getSourceSide)
+					this->get_min_source_side();
+				else
+					this->get_min_sink_side();
             }
 		private:
             inline void relabel(const Node& n, int new_level) {
@@ -701,14 +709,15 @@ namespace lemon{
 					_elevator->activate(v, thread_id);				
             }
 			void discharge(const Node& n, int thread_id) {
-				// discharge only, no relabel
 				const Digraph& _graph = this->_graph;
 				Elevator*& _elevator = this->_elevator;
 				ExcessMap*& _excess = this->_excess;
 				Tolerance& _tolerance = this->_tolerance;
 				FlowMap*& _flow = this->_flow;
 				const CapacityMap*& _capacity = this->_capacity;
-
+				// save old label
+				_elevator->add_new_level(n, (*_elevator)[n]);
+				// discharge only, no actual relabel
 				int new_level = 2 * _elevator->maxLevel();
 				for(OutArcIt e(_graph, n); e != INVALID; ++e){
 					Node v = _graph.target(e);
