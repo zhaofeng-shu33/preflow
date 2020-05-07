@@ -640,6 +640,12 @@ namespace lemon{
 					int thread_id = 0;
 					this->discharge(this->_elevator->get_node(i), thread_id);
 				}
+				for (int i = 0; i < this->_elevator->get_active_count(); i++) {
+					int thread_id = 0;
+					Node n = this->_elevator->get_node(i);
+					this->elevator->lift(n, this->_elevator->get_new_level(n));					
+				}
+
 			}
             inline void startFirstPhase() {
 				this->_elevator->concatenate_active_sets();

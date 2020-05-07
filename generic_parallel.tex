@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\title{Generic Parallel Preflow Algorithm}
+\author{zhaofeng-shu33}
+\begin{document}
+\maketitle
+\begin{algorithm}
+\caption{Generic Parallel Preflow Algorithm}
+\begin{algorithmic}[1]
+\REQUIRE $G=(V,E),c,s,t$
+\ENSURE optimal flow $f$
+\STATE workingSet $:=[v | (s, v) \leftarrow E, e(v) > 0]$
+\WHILE{workingSet $\neq \emptyset$}
+\FOR[phase 1(push)]{each $v \in$ workingSet in parallel}
+%\STATE thread.discoveredVertices $:= []$
+\FOR{each residual edge $(v, w) \in E_f$}
+\IF[edge is admissible]{$d(v) = d(w) + 1$ and $c_f(v, w)>0$}
+\STATE $\Delta := \min\{c_f(v, w), e(v))\}$
+\STATE $f(v, w) += \Delta$
+\STATE $e(v) -= \Delta$
+\STATE w.addedExcess $+= \Delta$\COMMENT{atomic fetch-and-add}
+\IF{$w\neq s$ and $w \neq t$ and TestAndSet(w.isDiscovered) is false}
+\STATE thread.discoveredVertices.pushBack(w)
+\ENDIF
+\ENDIF
+\IF{$e(v) = 0$}
+\STATE \textbf{break}
+\ENDIF
+\ENDFOR
+\ENDFOR
+\FOR[phase 2(relabel)]{each $v \in$ workingSet in parallel}
+\IF{$e(v) > 0$}
+\STATE v.newLabel $:= n$
+\ENDIF
+\ENDFOR
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+\end{document}
