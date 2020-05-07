@@ -646,7 +646,7 @@ namespace lemon{
                 pushRelabel(true);
             }
 		private:
-            inline void relabel(const Node& n, new_level) {
+            inline void relabel(const Node& n, int new_level) {
 	            this->_elevator->add_new_level(n, new_level + 1);
             }
 
@@ -695,7 +695,10 @@ namespace lemon{
                     (*_excess)[u] = 0;
                     _elevator->add_new_excess(v, excess);
                     _flow->set(e, (*_flow)[e] - excess);
-                }                
+                }
+				if(v != this->_target && v != this->_source &&
+					_elevator->is_discovered(v) == false)
+					_elevator->activate(v, thread_id);				
             }
 			void discharge(const Node& n, int thread_id) {
 				// discharge only, no relabel
@@ -744,7 +747,7 @@ namespace lemon{
 				else {
 					relabel(n, 2 * _elevator->maxLevel() - 2);
 				}
-				if (_elevator->is_discovered(n) == false))
+				if (_elevator->is_discovered(n) == false)
 					_elevator->activate(n, thread_id);
 			}
 	};
