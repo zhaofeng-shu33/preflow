@@ -647,7 +647,7 @@ namespace lemon{
 						int thread_id = 0;
 						Node n = _elevator->get_node(i);
 						_elevator->lift(n, _elevator->get_new_level(n));
-						_elevator.clear_discover(n);
+						_elevator->clear_discover(n);
 					}
 					_elevator->concatenate_active_sets();
 					// Todo: parallel this for loop using openmp
@@ -655,7 +655,7 @@ namespace lemon{
 						int thread_id = 0;
 						Node n = _elevator->get_node(i);
 						this->_excess[n] += _elevator->get_new_excess(n);
-						_elevator.clear_discover(n);
+						_elevator->clear_discover(n);
 					}
 				}
 			}
