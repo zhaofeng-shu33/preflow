@@ -673,6 +673,9 @@ namespace lemon{
 				else
 					this->get_min_sink_side();
             }
+            Value flowValue() const {
+                return (*_excess)[_target] + this->_elevator->get_new_excess(_target);
+            }
 		private:
             inline void relabel(const Node& n, int new_level) {
 	            this->_elevator->add_new_level(n, new_level + 1);
