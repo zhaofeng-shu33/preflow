@@ -572,7 +572,8 @@ TEST(Preflow_Parallel, Construction) {
 	aM[a6] = 10;
 	aM[a7] = 3;
 	aM[a8] = 5;
-	Preflow_Parallel<Digraph, ArcMap> pf_hl(g, aM, n0, n5);
-	pf_hl.init();
-	pf_hl.startFirstPhase();
+	Preflow_Parallel<Digraph, ArcMap> pf_para(g, aM, n0, n5);
+	pf_para.init();
+	pf_para.startFirstPhase();
+	EXPECT_EQ(pf_para.flowValue(), 14);
 }
