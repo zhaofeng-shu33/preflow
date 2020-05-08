@@ -674,8 +674,7 @@ namespace lemon{
 					this->get_min_sink_side();
             }
             Value flowValue() const {
-				ExcessMap*& _excess = this->_excess;
-                return (*_excess)[this->_target] + this->_elevator->get_new_excess(this->_target);
+                return (*this->_excess)[this->_target] + this->_elevator->get_new_excess(this->_target);
             }
 		private:
             inline void relabel(const Node& n, int new_level) {
