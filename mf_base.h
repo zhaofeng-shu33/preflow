@@ -656,6 +656,7 @@ namespace lemon{
 						int thread_id = 0;
 						Node n = _elevator->get_node(i);
 						(*_excess)[n] += _elevator->get_new_excess(n);
+						_elevator->clear_new_excess(n);
 						_elevator->clear_discover(n);
 					}
 				}
