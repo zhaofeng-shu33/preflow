@@ -67,7 +67,9 @@ namespace lemon{
         inline bool is_discovered(Item i) {
             return _vertices[_graph.id(i)].discovered.test_and_set(std::memory_order_relaxed);
         }
-
+        inline void clear_discover(Item i) {
+            _vertices[_graph.id(i)].discovered.clear(std::memory_order_relaxed);
+        }
         inline bool active(Item i) const { return false; }
 
         inline void add_new_excess(Item i, Value excess_value) {
