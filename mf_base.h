@@ -643,7 +643,7 @@ namespace lemon{
 				for (int i = 0; i < this->_elevator->get_active_count(); i++) {
 					int thread_id = 0;
 					Node n = this->_elevator->get_node(i);
-					this->elevator->lift(n, this->_elevator->get_new_level(n));					
+					this->_elevator->lift(n, this->_elevator->get_new_level(n));					
 				}
 
 			}

@@ -32,7 +32,25 @@
 \FOR[phase 2(relabel)]{each $v \in$ workingSet in parallel}
 \IF{$e(v) > 0$}
 \STATE v.newLabel $:= n$
+\FOR{each edge $(v, w) \in E_f$ with $c_f(v, w) > 0$}
+\STATE v.newLabel $:= \min\{v.\textrm{newLabel}, d(w)\}$
+\ENDFOR
+\IF{TestAndSet(v.isDiscovered) is false}
+\STATE thread.discoveredVertices.pushBack(v)
 \ENDIF
+\ELSE
+\STATE v.newLabel $:= d(v)$
+\ENDIF
+\ENDFOR
+\FOR[phase 3(apply new labels)]{each $v\in $ workingSet in parallel}
+\STATE $d(v) :=v$.newLabel
+\STATE v.isDiscovered := 0
+\ENDFOR
+\STATE workingSet := Concat([t.discoveredVertices | $t \leftarrow$ workingThread])
+\FOR[phase 4 (apply excess changes)]{each $v \in$ workingSet in parallel}
+\STATE e(v) += v.addedExcess
+\STATE v.addedExcess := 0
+\STATE v.isDiscovered := 0
 \ENDFOR
 \ENDWHILE
 \end{algorithmic}
