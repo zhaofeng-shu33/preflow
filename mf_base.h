@@ -636,6 +636,7 @@ namespace lemon{
 				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
 			void pushRelabel(bool limit_max_level) {
 				Elevator*& _elevator = this->_elevator;
+				ExcessMap*& _excess = this->_excess;
 				while( _elevator->get_active_count() > 0) {
 					// Todo: parallel this for loop using openmp
 					for (int i = 0; i < _elevator->get_active_count(); i++) {
@@ -654,7 +655,7 @@ namespace lemon{
 					for (int i = 0; i < _elevator->get_active_count(); i++) {
 						int thread_id = 0;
 						Node n = _elevator->get_node(i);
-						this->_excess[n] += _elevator->get_new_excess(n);
+						(*_excess)[n] += _elevator->get_new_excess(n);
 						_elevator->clear_discover(n);
 					}
 				}
