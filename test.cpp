@@ -576,4 +576,10 @@ TEST(Preflow_Parallel, Construction) {
 	pf_para.init();
 	pf_para.startFirstPhase();
 	EXPECT_EQ(pf_para.flowValue(), 14);
+	pf_para.startSecondPhase();
+	Preflow<Digraph, ArcMap> pf(g, aM, n0, n5);
+	pf.run();
+	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+		EXPECT_EQ(pf.minCut(n), pf_para.minCut(n));
+	}
 }
