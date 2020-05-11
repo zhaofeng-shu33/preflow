@@ -1,6 +1,8 @@
 #include <vector>
 #include <atomic>
-
+#ifdef OPENMP
+#include <omp.h>
+#endif
 namespace lemon{
     template<class GR, class Item, class Value = int>
     class ParallelElevator{
@@ -135,7 +137,12 @@ namespace lemon{
 		}
 		typedef ParallelElevator<Digraph, typename Digraph::Node, Value> Elevator;
 		static Elevator* createElevator(const Digraph& digraph, int max_level) {
-			return new Elevator(digraph, max_level);
+            #if OPENMP
+            int thread_cnt = omp_get_thread_num();
+            #else
+            int thread_cnt = 1;
+            #endif            
+			return new Elevator(digraph, max_level, thread_cnt);
 		}
 		typedef lemon::Tolerance<Value> Tolerance;
 	};    
