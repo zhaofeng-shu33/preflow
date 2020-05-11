@@ -4,6 +4,9 @@
 #ifdef INTERRUPT
 #include "InterruptibleThread/InterruptibleThread.h"
 #endif
+#ifdef OPENMP
+#include <omp.h>
+#endif
 #include "relabel_to_front_elevator.h"
 #include "fifo_elevator.h"
 #include "highest_label_elevator.h"
