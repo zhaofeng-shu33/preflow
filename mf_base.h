@@ -638,22 +638,26 @@ namespace lemon{
 				Elevator*& _elevator = this->_elevator;
 				ExcessMap*& _excess = this->_excess;
 				while( _elevator->get_active_count() > 0) {
-					// Todo: parallel this for loop using openmp
+					#pragma omp for schedule(static)
 					for (int i = 0; i < _elevator->get_active_count(); i++) {
+						#if OPENMP
+						int thread_id = omp_get_thread_num();
+						#else
 						int thread_id = 0;
+						#endif
 						discharge(_elevator->get_node(i), thread_id);
 					}
-					// Todo: parallel this for loop using openmp
+
+					#pragma omp for schedule(static)
 					for (int i = 0; i < _elevator->get_active_count(); i++) {
-						int thread_id = 0;
 						Node n = _elevator->get_node(i);
 						_elevator->lift(n, _elevator->get_new_level(n));
 						_elevator->clear_discover(n);
 					}
 					_elevator->concatenate_active_sets();
-					// Todo: parallel this for loop using openmp
+
+					#pragma omp for schedule(static)
 					for (int i = 0; i < _elevator->get_active_count(); i++) {
-						int thread_id = 0;
 						Node n = _elevator->get_node(i);
 						(*_excess)[n] += _elevator->get_new_excess(n);
 						_elevator->clear_new_excess(n);
