@@ -704,7 +704,7 @@ namespace lemon{
 					// saturating push
 					(*_excess)[u] -= rem;
 #ifdef OPENMP
-					_elevator->add_new_excess(v, rem, this.excess_write_lock);
+					_elevator->add_new_excess(v, rem, this->excess_write_lock);
 #else
 					_elevator->add_new_excess(v, rem);
 #endif
@@ -713,7 +713,11 @@ namespace lemon{
                 else {
 					// non-saturating push
 					(*_excess)[u] = 0;
+#ifdef OPENMP
+					_elevator->add_new_excess(v, excess, this->excess_write_lock);
+#else
 					_elevator->add_new_excess(v, excess);
+#endif
 					_flow->set(e, (*_flow)[e] + excess);
                 }
 				if(v != this->_target && v != this->_source &&
@@ -732,13 +736,21 @@ namespace lemon{
                 if(_tolerance.less(rem, excess)){
                     // saturating push
                     (*_excess)[u] -= rem;
+#ifdef OPENMP
+                    _elevator->add_new_excess(v, rem, this->excess_write_lock);
+#else
                     _elevator->add_new_excess(v, rem);
+#endif
                     _flow->set(e, 0);
                 }
                 else {
                     // no saturating push
                     (*_excess)[u] = 0;
+#ifdef OPENMP
+                    _elevator->add_new_excess(v, excess, this->excess_write_lock);
+#else
                     _elevator->add_new_excess(v, excess);
+#endif
                     _flow->set(e, (*_flow)[e] - excess);
                 }
 				if(v != this->_target && v != this->_source &&
