@@ -659,7 +659,7 @@ namespace lemon{
 						discharge(_elevator->get_node(i), thread_id);
 					}
 
-					#pragma omp for schedule(static)
+					#pragma omp parallel for schedule(static)
 					for (int i = 0; i < _elevator->get_active_count(); i++) {
 						Node n = _elevator->get_node(i);
 						_elevator->lift(n, _elevator->get_new_level(n));
@@ -667,7 +667,7 @@ namespace lemon{
 					}
 					_elevator->concatenate_active_sets();
 
-					#pragma omp for schedule(static)
+					#pragma omp parallel for schedule(static)
 					for (int i = 0; i < _elevator->get_active_count(); i++) {
 						Node n = _elevator->get_node(i);
 						(*_excess)[n] += _elevator->get_new_excess(n);
