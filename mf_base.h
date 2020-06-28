@@ -635,6 +635,7 @@ namespace lemon{
 		private:
 			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
 #ifdef OPENMP
+			// should be changed to lock_list[max_thread_id]
 			omp_lock_t excess_write_lock;
 #endif
 		public:

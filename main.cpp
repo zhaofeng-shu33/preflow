@@ -11,7 +11,8 @@ int main(int argc, const char *argv[]){
 	desc.add_options()
 		("help,h", "Show this help screen")
 		("filename", boost::program_options::value<std::string>(), "lgf file name")
-		("method", boost::program_options::value<std::string>()->default_value("hl"), "maxflow implementation: rtf, hl, fifo, o_hl")
+		("method", boost::program_options::value<std::string>()->default_value("hl"),
+			"maxflow implementation: rtf, hl, fifo, o_hl, pg")
 		("print_cut", boost::program_options::value<bool>()->implicit_value(true)->default_value(false), "whether to print the min cut set of source side");
 
 	boost::program_options::command_line_parser parser{ argc, argv };
@@ -88,9 +89,18 @@ int main(int argc, const char *argv[]){
 			if (alg.minCut(n))
 				cut_set << digraph.id(n) << ',';
 		}
-	} else {
+	} else if (method_short_name == "o_hl") {
 		lemon::Preflow<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "original highest label";
+		alg.run();
+		max_flow_value = alg.flowValue();
+		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
+			if (alg.minCut(n))
+				cut_set << digraph.id(n) << ',';
+		}
+	} else {
+		lemon::Preflow_Parallel<Digraph, ArcMap> alg(digraph, cap, src, trg);
+		method_name = "parallel generic";
 		alg.run();
 		max_flow_value = alg.flowValue();
 		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
