@@ -645,6 +645,11 @@ namespace lemon{
 					omp_init_lock(&excess_write_lock);
 #endif
 			}
+            void run() {
+                this->init();
+                startFirstPhase();
+                startSecondPhase();
+            }
 			void pushRelabel(bool limit_max_level) {
 				Elevator*& _elevator = this->_elevator;
 				ExcessMap*& _excess = this->_excess;
@@ -679,7 +684,6 @@ namespace lemon{
             inline void startFirstPhase() {
 				this->_elevator->concatenate_active_sets();
                 pushRelabel(true);
-
             }
             // the second phase calculate the minimal cut set
             void startSecondPhase(bool getSourceSide = false) {
