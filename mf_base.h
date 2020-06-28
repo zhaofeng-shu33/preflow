@@ -639,7 +639,11 @@ namespace lemon{
 #endif
 		public:
 			Preflow_Parallel(const Digraph& digraph, const CapacityMap& capacity,
-				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
+				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {
+#ifdef OPENMP
+					omp_init_lock(&excess_write_lock);
+#endif
+			}
 			void pushRelabel(bool limit_max_level) {
 				Elevator*& _elevator = this->_elevator;
 				ExcessMap*& _excess = this->_excess;
@@ -687,6 +691,7 @@ namespace lemon{
                 return (*this->_excess)[this->_target] + this->_elevator->get_new_excess(this->_target);
             }
 		private:
+			
             inline void relabel(const Node& n, int new_level) {
 	            this->_elevator->add_new_level(n, new_level + 1);
             }
