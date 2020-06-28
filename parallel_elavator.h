@@ -46,9 +46,10 @@ namespace lemon{
               for (int i = 0; i < node_num; i++) {
                   omp_init_lock(&_vertices[i].new_excess_write_lock);
               }
+#endif
               _active_local = std::make_unique<std::vector<int>[]>(thread_count);
 		}
-#endif
+
         int get_active_count() {
             return active_nodes.size();
         }

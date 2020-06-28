@@ -649,7 +649,7 @@ namespace lemon{
 				ExcessMap*& _excess = this->_excess;
 				while( _elevator->get_active_count() > 0) {
 					int active_cnt = _elevator->get_active_count();
-					#pragma omp parallel for schedule(static)
+					#pragma omp parallel for schedule(dynamic)
 					for (int i = 0; i < active_cnt; i++) {
 						#if OPENMP
 						int thread_id = omp_get_thread_num();
