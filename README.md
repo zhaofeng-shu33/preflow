@@ -15,3 +15,7 @@ Selection Rules:
 - Highest Relabel
 - FIFO
 - Relabel to front
+
+Parallel Implementation:
+
+- generic parallel
