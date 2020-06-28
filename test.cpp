@@ -583,3 +583,39 @@ TEST(Preflow_Parallel, Construction) {
 		EXPECT_EQ(pf.minCut(n), pf_para.minCut(n));
 	}
 }
+
+TEST(Preflow_Parallel, Floating) {
+	typedef ListDigraph Digraph;
+	typedef double T;
+	typedef Digraph::ArcMap<T> ArcMap;
+	typedef ListDigraph::Node Node;
+	typedef ListDigraph::Arc Arc;
+	Digraph g;
+	Node n0 = g.addNode();
+	Node n1 = g.addNode();
+	Node n2 = g.addNode();
+	Node n3 = g.addNode();
+	ArcMap aM(g);
+	Arc a1 = g.addArc(n0, n1);
+	Arc a2 = g.addArc(n0, n2);
+	Arc a3 = g.addArc(n0, n3);
+	Arc a4 = g.addArc(n1, n2);
+	Arc a5 = g.addArc(n1, n3);
+	Arc a6 = g.addArc(n2, n3);
+	aM[a1] = 0.145;
+	aM[a2] = 0.21;
+	aM[a3] = 0.30;
+	aM[a4] = 0.003;
+	aM[a5] = 0.003;
+	aM[a6] = 0.82;
+	Preflow<Digraph, ArcMap> pf(g, aM, n0, n3);
+	pf.run();
+	Preflow_Parallel<Digraph, ArcMap> pf_para(g, aM, n0, n3);
+	pf_para.init();
+	pf_para.startFirstPhase();
+	EXPECT_EQ(pf_para.flowValue(), pf.flowValue());
+	pf_para.startSecondPhase();
+	for (Digraph::NodeIt n(g); n != INVALID; ++n) {
+		EXPECT_EQ(pf.minCut(n), pf_para.minCut(n));
+	}
+}
