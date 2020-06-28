@@ -634,16 +634,10 @@ namespace lemon{
             typedef typename Digraph::template NodeMap<Value> ExcessMap;
 		private:
 			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
-#ifdef OPENMP
-			// should be changed to lock_list[max_thread_id]
-			omp_lock_t excess_write_lock;
-#endif
 		public:
 			Preflow_Parallel(const Digraph& digraph, const CapacityMap& capacity,
 				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {
-#ifdef OPENMP
-					omp_init_lock(&excess_write_lock);
-#endif
+
 			}
             void run() {
                 this->init();
@@ -713,21 +707,13 @@ namespace lemon{
                 if(_tolerance.less(rem, excess)){ // rem + epsilon < excess
 					// saturating push
 					(*_excess)[u] -= rem;
-#ifdef OPENMP
-					_elevator->add_new_excess(v, rem, this->excess_write_lock);
-#else
 					_elevator->add_new_excess(v, rem);
-#endif
 					_flow->set(e, (*_capacity)[e]);
                 }
                 else {
 					// non-saturating push
 					(*_excess)[u] = 0;
-#ifdef OPENMP
-					_elevator->add_new_excess(v, excess, this->excess_write_lock);
-#else
 					_elevator->add_new_excess(v, excess);
-#endif
 					_flow->set(e, (*_flow)[e] + excess);
                 }
 				if(v != this->_target && v != this->_source &&
@@ -746,21 +732,13 @@ namespace lemon{
                 if(_tolerance.less(rem, excess)){
                     // saturating push
                     (*_excess)[u] -= rem;
-#ifdef OPENMP
-                    _elevator->add_new_excess(v, rem, this->excess_write_lock);
-#else
                     _elevator->add_new_excess(v, rem);
-#endif
                     _flow->set(e, 0);
                 }
                 else {
                     // no saturating push
                     (*_excess)[u] = 0;
-#ifdef OPENMP
-                    _elevator->add_new_excess(v, excess, this->excess_write_lock);
-#else
                     _elevator->add_new_excess(v, excess);
-#endif
                     _flow->set(e, (*_flow)[e] - excess);
                 }
 				if(v != this->_target && v != this->_source &&

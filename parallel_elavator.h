@@ -11,6 +11,9 @@ namespace lemon{
         struct VertexExtraInfo
         {
             Value new_excess;
+#ifdef OPENMP           
+            omp_lock_t new_excess_write_lock;
+#endif           
             int new_level;
             std::atomic_flag discovered = ATOMIC_FLAG_INIT; // avoid duplicate add
         };
@@ -37,10 +40,15 @@ namespace lemon{
 		ParallelElevator(const GR& graph, int max_level, int thread_count = 1)
         : _graph(graph), _max_level(max_level),
           _level(graph), _init_level(0), _thread_cnt(thread_count) {
-              _vertices = std::make_unique<VertexExtraInfo[]>(countNodes(graph));
+              int node_num  = countNodes(graph);
+              _vertices = std::make_unique<VertexExtraInfo[]>(node_num);
+#ifdef OPENMP
+              for (int i = 0; i < node_num; i++) {
+                  omp_init_lock(&_vertices[i].new_excess_write_lock);
+              }
               _active_local = std::make_unique<std::vector<int>[]>(thread_count);
 		}
-
+#endif
         int get_active_count() {
             return active_nodes.size();
         }
@@ -74,10 +82,11 @@ namespace lemon{
         }
         inline bool active(Item i) const { return false; }
 #ifdef OPENMP
-        inline void add_new_excess(Item i, Value excess_value, omp_lock_t& lock) {
-            omp_set_lock(&lock);
-            _vertices[_graph.id(i)].new_excess += excess_value;
-            omp_unset_lock(&lock);
+        inline void add_new_excess(Item i, Value excess_value) {
+            VertexExtraInfo& v_info = _vertices[_graph.id(i)];
+            omp_set_lock(&v_info.new_excess_write_lock);
+            v_info.new_excess += excess_value;
+            omp_unset_lock(&v_info.new_excess_write_lock);
         }
 #else
         inline void add_new_excess(Item i, Value excess_value) {
