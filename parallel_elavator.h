@@ -10,7 +10,7 @@ namespace lemon{
     private:
         struct VertexExtraInfo
         {
-            std::atomic<Value> new_excess;
+            Value new_excess;
             int new_level;
             std::atomic_flag discovered = ATOMIC_FLAG_INIT; // avoid duplicate add
         };
@@ -73,12 +73,19 @@ namespace lemon{
             _vertices[_graph.id(i)].discovered.clear(std::memory_order_relaxed);
         }
         inline bool active(Item i) const { return false; }
-
-        inline void add_new_excess(Item i, Value excess_value) {
-            _vertices[_graph.id(i)].new_excess.fetch_add(excess_value, std::memory_order_relaxed);
+#ifdef OPENMP
+        inline void add_new_excess(Item i, Value excess_value, omp_lock_t& lock) {
+            omp_set_lock(&lock);
+            _vertices[_graph.id(i)].new_excess += excess_value;
+            omp_unset_lock(&lock);
         }
+#else
+        inline void add_new_excess(Item i, Value excess_value) {
+            _vertices[_graph.id(i)].new_excess += excess_value;
+        }
+#endif
         inline void clear_new_excess(Item i) {
-            _vertices[_graph.id(i)].new_excess.store(0, std::memory_order_relaxed);
+            _vertices[_graph.id(i)].new_excess = 0;
         }
         inline Value get_new_excess(Item i) {
             return _vertices[_graph.id(i)].new_excess;

@@ -634,6 +634,9 @@ namespace lemon{
             typedef typename Digraph::template NodeMap<Value> ExcessMap;
 		private:
 			TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+#ifdef OPENMP
+			omp_lock_t excess_write_lock;
+#endif
 		public:
 			Preflow_Parallel(const Digraph& digraph, const CapacityMap& capacity,
 				Node source, Node target) : Preflow_Base<GR, CAP,TR>(digraph, capacity, source, target) {}
@@ -700,7 +703,11 @@ namespace lemon{
                 if(_tolerance.less(rem, excess)){ // rem + epsilon < excess
 					// saturating push
 					(*_excess)[u] -= rem;
+#ifdef OPENMP
+					_elevator->add_new_excess(v, rem, this.excess_write_lock);
+#else
 					_elevator->add_new_excess(v, rem);
+#endif
 					_flow->set(e, (*_capacity)[e]);
                 }
                 else {
