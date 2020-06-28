@@ -68,12 +68,12 @@ int main(int argc, const char *argv[]){
 	cut_set << '{';
 	std::chrono::system_clock::time_point start_time;
 	std::chrono::system_clock::time_point end_time;
-
-    start_time = std::chrono::system_clock::now();
-
+    
+	
 	if (method_short_name == "hl") {
 		lemon::Preflow_HL<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "highest label";
+		start_time = std::chrono::system_clock::now();
 		alg.run();
 		max_flow_value = alg.flowValue();
 		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
@@ -83,6 +83,7 @@ int main(int argc, const char *argv[]){
 	} else if (method_short_name == "rtf") {
 		lemon::Preflow_Relabel<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "relabel to front";
+		start_time = std::chrono::system_clock::now();
 		alg.run();
 		max_flow_value = alg.flowValue();
 		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
@@ -92,6 +93,7 @@ int main(int argc, const char *argv[]){
 	} else if (method_short_name == "fifo") {
 		lemon::Preflow_FIFO<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "first in first out";
+		start_time = std::chrono::system_clock::now();
 		alg.run();
 		max_flow_value = alg.flowValue();
 		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
@@ -101,6 +103,7 @@ int main(int argc, const char *argv[]){
 	} else if (method_short_name == "o_hl") {
 		lemon::Preflow<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "original highest label";
+		start_time = std::chrono::system_clock::now();
 		alg.run();
 		max_flow_value = alg.flowValue();
 		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
@@ -110,6 +113,7 @@ int main(int argc, const char *argv[]){
 	} else {
 		lemon::Preflow_Parallel<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "parallel generic";
+		start_time = std::chrono::system_clock::now();
 		alg.run();
 		max_flow_value = alg.flowValue();
 		for (NodeIt n(digraph); n != lemon::INVALID; ++n) {
