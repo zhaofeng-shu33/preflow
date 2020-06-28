@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 #include <boost/program_options.hpp>
 #include <lemon/lgf_reader.h>
 #include <lemon/list_graph.h>
@@ -13,6 +14,8 @@ int main(int argc, const char *argv[]){
 		("filename", boost::program_options::value<std::string>(), "lgf file name")
 		("method", boost::program_options::value<std::string>()->default_value("hl"),
 			"maxflow implementation: rtf, hl, fifo, o_hl, pg")
+		("timing", boost::program_options::value<bool>()->implicit_value(true)->default_value(false),
+			"whether to timing the algorithm")
 		("print_cut", boost::program_options::value<bool>()->implicit_value(true)->default_value(false), "whether to print the min cut set of source side");
 
 	boost::program_options::command_line_parser parser{ argc, argv };
@@ -33,10 +36,11 @@ int main(int argc, const char *argv[]){
 	}
 	std::string filename;
 	std::string method_short_name;
-	bool print_cut;
+	bool print_cut, timing;
 	try{
 		method_short_name = vm["method"].as<std::string>();
 		print_cut = vm["print_cut"].as<bool>();
+		timing = vm["timing"].as<bool>();
 		filename = vm["filename"].as<std::string>();
 	}
 	catch (const boost::program_options::error & ex) {
@@ -62,6 +66,11 @@ int main(int argc, const char *argv[]){
 	std::string method_name;
 	std::stringstream cut_set;
 	cut_set << '{';
+	std::chrono::system_clock::time_point start_time;
+	std::chrono::system_clock::time_point end_time;
+
+    start_time = std::chrono::system_clock::now();
+
 	if (method_short_name == "hl") {
 		lemon::Preflow_HL<Digraph, ArcMap> alg(digraph, cap, src, trg);
 		method_name = "highest label";
@@ -108,11 +117,20 @@ int main(int argc, const char *argv[]){
 				cut_set << digraph.id(n) << ',';
 		}
 	}
+	end_time = std::chrono::system_clock::now();
+
 	std::cout << "using " << method_name  <<", max flow value : " << max_flow_value << '\n';
 	if (print_cut) {
 		std::string cut_set_string = cut_set.str();
 		cut_set_string[cut_set_string.length() - 1] = '}';
 		std::cout << "min cut set of source side: " << cut_set_string << '\n';
+	}
+	if (timing) {
+		std::chrono::system_clock::duration dtn;
+		float time_used;
+        dtn = end_time - start_time;
+        time_used = std::chrono::duration_cast<std::chrono::milliseconds>(dtn).count()/1000.0;
+		std::cout << "time used " << time_used << "s" << std::endl;
 	}
 	return 0;
 }
