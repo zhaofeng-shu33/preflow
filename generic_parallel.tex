@@ -1,10 +1,15 @@
 \documentclass{article}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{hyperref}
 \title{Generic Parallel Preflow Algorithm}
 \author{zhaofeng-shu33}
 \begin{document}
 \maketitle
+This manuscript gives the pseudocode of generic parallel preflow algorithm, which guides the implementation of the parallel version
+of maximum flow algorithm in this repository. This pseudocode is modified slighted from \cite{mf}, 5.2.5. Some techniques are also
+borrowed from \href{https://github.com/Zagrosss/maxflow/blob/master/src/lib/algorithms/parallel/parallel_push_relabel.h}{parallel\_push\_relabel.h}.
+
 \begin{algorithm}
 \caption{Generic Parallel Preflow Algorithm}
 \begin{algorithmic}[1]
@@ -55,4 +60,9 @@
 \ENDWHILE
 \end{algorithmic}
 \end{algorithm}
+
+\begin{thebibliography}{9}
+\bibitem{mf} Baumstark, Niklas. Speeding Up Maximum Flow Computations on Shared Memory Platforms. Diss. Karlsruher Institut für Technologie (KIT), 2014.
+\end{thebibliography}
+
 \end{document}
