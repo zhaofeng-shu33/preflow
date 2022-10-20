@@ -62,12 +62,9 @@ if(ENABLE_TESTING)
     find_package(GTest REQUIRED)
     include_directories(${GTEST_INCLUDE_DIR})
    
-    if(WIN32)
-        target_link_libraries(test_mf debug ${GTEST_MAIN_LIBRARY_DEBUG} debug ${GTEST_LIBRARY_DEBUG})
-        target_link_libraries(test_mf optimized ${GTEST_MAIN_LIBRARY} optimized ${GTEST_LIBRARY})
-    elseif(UNIX)
-        target_link_libraries(test_mf ${GTEST_MAIN_LIBRARY} ${GTEST_LIBRARY})
-    endif()  
+
+    target_link_libraries(test_mf GTest::GTest GTest::Main)
+    
     # copy the graph data file to build directory
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test.lgf ${PROJECT_BINARY_DIR}/test.lgf COPYONLY)
     if(NOT "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
