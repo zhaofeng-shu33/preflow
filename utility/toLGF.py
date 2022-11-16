@@ -1,5 +1,5 @@
 '''This program converts Dimacs or gml format to LGF graph format(LEMON C++)
-currently only digraph convertion is supported.
+currently only digraph conversion is supported.
 '''
 import os
 import argparse

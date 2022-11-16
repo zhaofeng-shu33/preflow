@@ -1,5 +1,5 @@
 '''This program converts LGF graph format(LEMON C++) to gv format (graphviz)
-currently only digraph convertion is supported.
+currently only digraph conversion is supported.
 '''
 import argparse
 import networkx as nx
